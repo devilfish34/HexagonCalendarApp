@@ -1,38 +1,109 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Upload Calendar File</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            height: 100vh;
-            align-items: center;
-            justify-content: center;
-            background: #f9f9f9;
-        }
+  <meta charset="UTF-8">
+  <title>Upload Work Order File</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 2em;
+      background-color: #f8f9fa;
+    }
 
-        .upload-box {
-            background: white;
-            padding: 2rem;
-            border: 1px solid #ccc;
-            border-radius: 8px;
-        }
-    </style>
+    .container {
+      max-width: 600px;
+      margin: 0 auto;
+      background: #fff;
+      padding: 2em;
+      border-radius: 10px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    h1 {
+      text-align: center;
+      color: #343a40;
+    }
+
+    .info-box {
+      background-color: #e9f5ff;
+      border-left: 5px solid #007bff;
+      padding: 1em;
+      margin-bottom: 2em;
+      border-radius: 5px;
+    }
+
+    .info-box ul {
+      margin-top: 0.5em;
+      padding-left: 1.5em;
+    }
+
+    label {
+      display: block;
+      margin-bottom: 0.5em;
+      font-weight: bold;
+    }
+
+    input[type="file"] {
+      display: block;
+      margin-bottom: 1em;
+    }
+
+    .error {
+      color: red;
+      margin-bottom: 1em;
+    }
+
+    .submit-btn {
+      background-color: #007bff;
+      color: white;
+      border: none;
+      padding: 0.5em 1.5em;
+      font-size: 1em;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    .submit-btn:hover {
+      background-color: #0056b3;
+    }
+  </style>
 </head>
 <body>
-    <div class="upload-box">
-        <h2>Upload Your Excel File</h2>
-        <form method="POST" enctype="multipart/form-data">
-            <input type="file" name="file" accept=".xlsx" required><br><br>
-            <button type="submit">Upload & View Calendar</button>
-            {% if error %}
-            <div style="color: red; margin-bottom: 1em;">
-                {{ error }}
-            </div>
-            {% endif %}
-        </form>
+  <div class="container">
+    <h1>📂 Upload Work Order File</h1>
+
+    {% if error %}
+      <div class="error">⚠️ {{ error }}</div>
+    {% endif %}
+
+    <div class="info-box">
+      <p>📘 <strong>Instructions:</strong> Upload an Excel file with the following columns:</p>
+
+      <ul>
+        <li>✅ <strong>Required Columns:</strong>
+          <ul>
+            <li>Work Order</li>
+            <li>Sched. Start Date</li>
+            <li>Sched. End Date</li>
+            <li>Data Center</li>
+          </ul>
+        </li>
+        <li>ℹ️ <strong>Optional Columns (recommended for full calendar features):</strong>
+          <ul>
+            <li>Description</li>
+            <li>Status</li>
+            <li>Type</li>
+            <li>Assigned To Name</li>
+          </ul>
+        </li>
+      </ul>
     </div>
+
+    <form action="/" method="post" enctype="multipart/form-data">
+      <label for="file">Select Excel File:</label>
+      <input type="file" name="file" id="file" accept=".xlsx" required>
+      <button type="submit" class="submit-btn">Upload</button>
+    </form>
+  </div>
 </body>
 </html>
