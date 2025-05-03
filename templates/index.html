@@ -27,6 +27,11 @@
         <form method="POST" enctype="multipart/form-data">
             <input type="file" name="file" accept=".xlsx" required><br><br>
             <button type="submit">Upload & View Calendar</button>
+            {% if error %}
+            <div style="color: red; margin-bottom: 1em;">
+                {{ error }}
+            </div>
+            {% endif %}
         </form>
     </div>
 </body>

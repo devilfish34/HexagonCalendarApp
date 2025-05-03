@@ -19,6 +19,13 @@ def upload():
             filename = f"{uuid.uuid4()}_{file.filename}"
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
+
+            try:
+                extract_work_orders(file_path)
+            except ValueError as ve:
+                print(f"Upload failed: {ve}", flush=True)
+                return render_template("index.html", error=str(ve))
+
             session["uploaded_file"] = filename
 
             print(f"Uploaded file saved to: {file_path}")
