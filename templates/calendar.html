@@ -65,6 +65,7 @@
     document.addEventListener('DOMContentLoaded', async function () {
       const calendarEl = document.getElementById('calendar');
       let allEvents = [];
+      let calendar;
 
       async function fetchEvents() {
         const res = await fetch('/api/events');
