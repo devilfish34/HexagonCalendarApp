@@ -1,87 +1,165 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <title>Work Order Calendar</title>
-    <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.css" rel="stylesheet">
-    <style>
-        body {
-            margin: 0;
-            font-family: Arial, sans-serif;
-        }
-
-        #app {
-            display: flex;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        #sidebar {
-            width: 250px;
-            background: #f8f9fa;
-            border-right: 1px solid #ccc;
-            padding: 50px 10px 10px;
-            transition: width 0.3s ease;
-            overflow-y: auto;
-        }
-
-        #sidebar.collapsed {
-            width: 0;
-            padding: 50px 0 10px; /* remove side padding when collapsed */
-            border-right: none;
-        }
-
-        #calendar-container {
-            flex: 1;
-            padding: 10px;
-            transition: margin-left 0.3s ease;
-        }
-
-        #sidebar.collapsed + #calendar-container {
-            margin-left: 0;
-        }
-
-        #toggleSidebar {
-            position: absolute;
-            top: 10px;
-            left: 10px;
-            z-index: 1000;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 4px;
-            padding: 6px 10px;
-            font-size: 14px;
-            cursor: pointer;
-        }
-
-        #filters label {
-            display: block;
-            margin-bottom: 6px;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>Work Order Calendar</title>
+  <link href='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.css' rel='stylesheet' />
+  <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/main.min.js'></script>
+  <script src="https://unpkg.com/@popperjs/core@2"></script>
+  <script src="https://unpkg.com/tippy.js@6"></script>
+  <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+    }
+    #calendar {
+      margin-left: 250px;
+      padding: 1em;
+    }
+    #sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      bottom: 0;
+      width: 240px;
+      background-color: #f8f9fa;
+      overflow-y: auto;
+      padding: 1em;
+      border-right: 1px solid #dee2e6;
+    }
+    .legend span {
+      display: inline-block;
+      padding: 0.3em 0.6em;
+      margin-right: 0.5em;
+      margin-bottom: 0.3em;
+      border-radius: 4px;
+      color: #fff;
+      font-size: 0.9em;
+    }
+    .fc-daygrid-day-frame {
+      min-height: 80px;
+    }
+  </style>
 </head>
 <body>
-    <div id="app">
-        <div id="sidebar">
-            <h4>Filter by Technician</h4>
-            <button class="select-toggle" data-target="technician">Select All</button>
-            <div id="filters-technician"></div>
-
-            <h4>Filter by Status</h4>
-            <button class="select-toggle" data-target="status">Select All</button>
-            <div id="filters-status"></div>
-
-            <h4>Filter by Building</h4>
-            <button class="select-toggle" data-target="building">Select All</button>
-            <div id="filters-building"></div>
-        </div>
-        <div id="calendar-container">
-            <div id="calendar"></div>
-        </div>
+  <div id="sidebar">
+    <div class="legend">
+      <strong>Legend:</strong><br>
+      <span style="background-color: #28a745;">Ready</span>
+      <span style="background-color: #ffc107; color: black;">Planning</span>
+      <span style="background-color: #007bff;">Approved</span>
+      <span style="background-color: #fd7e14; color: black;">In Process</span>
+      <span style="background-color: #6c757d;">Other</span>
     </div>
+    <h4>Filter by Technician</h4>
+    <div id="filters-technician"></div>
+    <h4>Filter by Status</h4>
+    <div id="filters-status"></div>
+    <h4>Filter by Building</h4>
+    <div id="filters-building"></div>
+  </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.8/index.global.min.js"></script>
-    <script src="/static/calendar.js"></script>
+  <div id="calendar"></div>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', async function () {
+      const calendarEl = document.getElementById('calendar');
+      let allEvents = [];
+
+      async function fetchEvents() {
+        const res = await fetch('/api/events');
+        allEvents = await res.json();
+        return allEvents;
+      }
+
+      function renderFilters(events) {
+        document.getElementById('filters-technician').innerHTML = '';
+        document.getElementById('filters-status').innerHTML = '';
+        document.getElementById('filters-building').innerHTML = '';
+
+        const getUniqueSorted = (arr) => [...new Set(arr)].sort();
+
+        const technicians = getUniqueSorted(events.map(e => e.title.split(' - ')[0]));
+        const statuses = getUniqueSorted(events.map(e => e.status));
+        const buildings = getUniqueSorted(events.map(e => e.building || "Other"));
+
+        const renderCheckboxGroup = (containerId, values, name) => {
+          const container = document.getElementById(containerId);
+          values.forEach(value => {
+            const label = document.createElement('label');
+            const checkbox = document.createElement('input');
+            checkbox.type = 'checkbox';
+            checkbox.value = value;
+            checkbox.name = name;
+            checkbox.checked = true;
+            checkbox.addEventListener('change', updateCalendar);
+            label.appendChild(checkbox);
+            label.append(` ${value}`);
+            container.appendChild(label);
+            container.appendChild(document.createElement('br'));
+          });
+        };
+
+        renderCheckboxGroup('filters-technician', technicians, 'technician');
+        renderCheckboxGroup('filters-status', statuses, 'status');
+        renderCheckboxGroup('filters-building', buildings, 'building');
+      }
+
+      function updateCalendar() {
+        const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+
+        const selectedTechs = getCheckedValues('technician');
+        const selectedStatuses = getCheckedValues('status');
+        const selectedBuildings = getCheckedValues('building');
+
+        const filteredEvents = allEvents.filter(event => {
+          const tech = event.title.split(' - ')[0];
+          const status = event.status;
+          const buildingValue = event.building || "Other";
+
+          return selectedTechs.includes(tech) &&
+                 selectedStatuses.includes(status) &&
+                 selectedBuildings.includes(buildingValue);
+        });
+
+        calendar.removeAllEvents();
+        calendar.addEventSource(filteredEvents);
+      }
+
+      const events = await fetchEvents();
+      renderFilters(events);
+
+      const calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        height: 'auto',
+        displayEventTime: false,
+        eventTimeFormat: { hour: '2-digit', minute: '2-digit', hour12: false },
+        events: events,
+        eventDidMount: function(info) {
+          const status = info.event.extendedProps.status?.toLowerCase() || "";
+          if (status.includes('ready')) {
+            info.el.style.backgroundColor = '#28a745';
+          } else if (status.includes('planning')) {
+            info.el.style.backgroundColor = '#ffc107';
+          } else if (status.includes('approved')) {
+            info.el.style.backgroundColor = '#007bff';
+          } else if (status.includes('in process')) {
+            info.el.style.backgroundColor = '#fd7e14';
+          } else {
+            info.el.style.backgroundColor = '#6c757d';
+          }
+
+          tippy(info.el, {
+            content: `<strong>${info.event.title}</strong><br>${info.event.extendedProps.description || ''}<br><em>${info.event.extendedProps.status || ''}</em>`,
+            allowHTML: true,
+            theme: 'light',
+            placement: 'top',
+          });
+        }
+      });
+
+      calendar.render();
+    });
+  </script>
 </body>
 </html>
