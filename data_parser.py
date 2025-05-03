@@ -1,9 +1,16 @@
 import pandas as pd
 
+import pandas as pd
+
 
 def extract_work_orders(file_path):
+    print(f"🔍 Reading Excel from: {file_path}")
+
     df = pd.read_excel(file_path, sheet_name="Sheet1")
+    print("📄 Excel Headers:", df.columns.tolist())
+
     df = df.dropna(subset=["Sched. Start Date"])
+    print(f"📆 Rows after dropping missing start dates: {len(df)}")
 
     # Ensure dates are parsed
     df["Sched. Start Date"] = pd.to_datetime(df["Sched. Start Date"])
@@ -18,10 +25,11 @@ def extract_work_orders(file_path):
     # Check for missing columns
     missing = [col for col in required_cols if col not in df.columns]
     if missing:
+        print(f"❌ Missing required columns: {missing}")
         raise ValueError(f"Missing required columns: {missing}")
 
+    print("✅ All required columns present.")
     return df[required_cols]
-
 
 def format_for_calendar(df):
     events = []

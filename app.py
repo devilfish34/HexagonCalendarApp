@@ -33,24 +33,37 @@ def calendar():
 
 @app.route("/api/events")
 def get_events():
-    filename = session.get("uploaded_file")
-    if not filename:
-        print("No file in session.")
+    try:
+        filename = session.get("uploaded_file")
+        print(f"📥 Session uploaded_file: {filename}")
+
+        if not filename:
+            print("⚠️ No uploaded file in session.")
+            return jsonify([])
+
+        file_path = os.path.join(UPLOAD_FOLDER, filename)
+        print(f"📦 Looking for file at: {file_path}")
+
+        if not os.path.exists(file_path):
+            print("❌ Uploaded file not found on disk.")
+            return jsonify([])
+
+        df = extract_work_orders(file_path)
+
+        print(f"✅ Extracted {len(df)} rows from Excel")
+        print(df.head().to_string())  # show a sample
+
+        events = format_for_calendar(df)
+        print(f"📅 Returning {len(events)} events to calendar")
+
+        return jsonify(events)
+
+    except Exception as e:
+        print("🔥 ERROR in /api/events:", str(e))
+        import traceback
+        traceback.print_exc()
         return jsonify([])
 
-    file_path = os.path.join(UPLOAD_FOLDER, filename)
-    if not os.path.exists(file_path):
-        print(f"File not found: {file_path}")
-        return jsonify([])
-
-    print(f"Serving events from: {file_path}")
-
-    df = extract_work_orders(file_path)
-    print(f"Loaded {len(df)} rows from Excel")
-
-    events = format_for_calendar(df)
-    print(f"Returning {len(events)} events to calendar")
-    return jsonify(events)
 
 if __name__ == "__main__":
     port = int(os.environ.get("PORT", 5000)) # Use PORT from environment
