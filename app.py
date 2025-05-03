@@ -19,7 +19,9 @@ def upload():
             file.save(file_path)
             session["upload_file"] = filename
             return redirect(url_for("calendar"))
-        return render_template("index.html")
+        else:
+            return render_template("index.html", error="Please select a valid Excel file.")
+    return render_template("index.html")
 
 @app.route("/calendar")
 def calendar():
