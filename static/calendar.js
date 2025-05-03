@@ -3,11 +3,21 @@ document.addEventListener('DOMContentLoaded', async function () {
     let allEvents = [];
 
     async function fetchEvents() {
-        const res = await fetch('/api/events');
-        allEvents = await res.json();
-        console.log("Fetched events:", allEvents);
-        return allEvents;
+        try {
+            const res = await fetch('/api/events');
+            const data = await res.json();
+            if (data.error) {
+                alert("Error loading calendar: " + data.error);
+                return [];
+            }
+            allEvents = data;
+            return allEvents;
+        } catch (err) {
+            alert("Could not load calendar events. Try re-uploading the file.");
+            return [];
+        }
     }
+
 
     function renderFilters(events) {
         // Clear all filter areas

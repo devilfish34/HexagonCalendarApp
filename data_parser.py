@@ -1,6 +1,16 @@
 import pandas as pd
 
-import pandas as pd
+# Central column definitions
+REQUIRED_COLUMNS = {
+    "work_order": "Work Order",
+    "description": "Description",
+    "assigned_to": "Assigned To Name",
+    "start_date": "Sched. Start Date",
+    "end_date": "Sched. End Date",
+    "status": "Status",
+    "type": "Type",
+    "building": "Data Center"
+}
 
 
 def extract_work_orders(file_path):
@@ -17,10 +27,7 @@ def extract_work_orders(file_path):
     df["Sched. End Date"] = pd.to_datetime(df["Sched. End Date"])
 
     # Required columns
-    required_cols = [
-        "Work Order", "Description", "Assigned To Name",
-        "Sched. Start Date", "Sched. End Date", "Status", "Type", "Data Center"
-    ]
+    required_cols = list(REQUIRED_COLUMNS.values())
 
     # Check for missing columns
     missing = [col for col in required_cols if col not in df.columns]
@@ -32,15 +39,17 @@ def extract_work_orders(file_path):
     return df[required_cols]
 
 def format_for_calendar(df):
+    c = REQUIRED_COLUMNS  # shorthand
+
     events = []
     for _, row in df.iterrows():
         events.append({
-            "title": f"{row['Assigned To Name']} - {row['Work Order']}: {row['Description'].split()[0]}",
-            "start": row["Sched. Start Date"].isoformat(),
-            "end": row["Sched. End Date"].isoformat(),
-            "description": row["Description"],
-            "status": row["Status"],
-            "type": row["Type"],
-            "building": row["Data Center"]
+            "title": f"{row[c['assigned_to']]} - {row[c['work_order']]}",
+            "start": row[c["start_date"]].isoformat(),
+            "end": row[c["end_date"]].isoformat(),
+            "description": row[c["description"]],
+            "status": row[c["status"]],
+            "type": row[c["type"]],
+            "building": row[c["building"]]
         })
     return events
