@@ -19,7 +19,7 @@ def upload():
             filename = f"{uuid.uuid4()}_{file.filename}"
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
-            session["upload_file"] = filename
+            session["uploaded_file"] = filename
 
             print(f"Uploaded file saved to: {file_path}")
             print(f"Session file set: {session.get('uploaded_file')}")
