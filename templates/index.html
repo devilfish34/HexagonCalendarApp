@@ -63,6 +63,11 @@
 </head>
 <body>
     <div id="app">
+        <form method="POST" enctype="multipart/form-data">
+            <label for="file">Upload Excel File (.xlsx):</label>
+            <input type="file" name="file" accept=".xlsx" required>
+            <button type="submit">Upload</button>
+        </form>
         <div id="sidebar">
             <h4>Filter by Technician</h4>
             <button class="select-toggle" data-target="technician">Select All</button>
