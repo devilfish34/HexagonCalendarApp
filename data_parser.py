@@ -46,12 +46,12 @@ def extract_work_orders(file_path):
 
 
 def format_for_calendar(df):
-    c = REQUIRED_COLUMNS  # shorthand
+    c = {**REQUIRED_COLUMNS, **OPTIONAL_COLUMNS}
 
     events = []
     for _, row in df.iterrows():
         events.append({
-            "title": f"{row.get([c['assigned_to']], '')} - {row[c['work_order']]}",
+            "title": f"{row.get(c['assigned_to'], '')} - {row[c['work_order']]}",
             "start": row[c["start_date"]].isoformat(),
             "end": row[c["end_date"]].isoformat(),
             "description": row.get(c["description"], ""),
@@ -60,3 +60,4 @@ def format_for_calendar(df):
             "building": row[c["building"]]
         })
     return events
+
