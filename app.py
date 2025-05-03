@@ -18,6 +18,10 @@ def upload():
             file_path = os.path.join(UPLOAD_FOLDER, filename)
             file.save(file_path)
             session["upload_file"] = filename
+
+            print(f"Uploaded file saved to: {file_path}")
+            print(f"Session file set: {session['uploaded_file']}")
+
             return redirect(url_for("calendar"))
         else:
             return render_template("index.html", error="Please select a valid Excel file.")
@@ -31,14 +35,21 @@ def calendar():
 def get_events():
     filename = session.get("uploaded_file")
     if not filename:
+        print("No file in session.")
         return jsonify([])
 
     file_path = os.path.join(UPLOAD_FOLDER, filename)
     if not os.path.exists(file_path):
+        print(f"File not found: {file_path}")
         return jsonify([])
 
+    print(f"Serving events from: {file_path}")
+
     df = extract_work_orders(file_path)
+    print(f"Loaded {len(df)} rows from Excel")
+
     events = format_for_calendar(df)
+    print(f"Returning {len(events)} events to calendar")
     return jsonify(events)
 
 if __name__ == "__main__":
