@@ -20,7 +20,7 @@ def upload():
             session["upload_file"] = filename
 
             print(f"Uploaded file saved to: {file_path}")
-            print(f"Session file set: {session['uploaded_file']}")
+            print(f"Session file set: {session.get('uploaded_file')}")
 
             return redirect(url_for("calendar"))
         else:
