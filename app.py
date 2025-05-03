@@ -33,6 +33,7 @@ def calendar():
 
 @app.route("/api/events")
 def get_events():
+    print("🚨 /api/events CALLED")
     try:
         filename = session.get("uploaded_file")
         print(f"📥 Session uploaded_file: {filename}")
