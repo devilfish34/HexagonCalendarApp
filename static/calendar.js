@@ -1,5 +1,6 @@
 document.addEventListener('DOMContentLoaded', async function () {
     const calendarEl = document.getElementById('calendar');
+    let calendar;
     let allEvents = [];
 
     async function fetchEvents() {
@@ -65,7 +66,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     const events = await fetchEvents();
     renderFilters(events);
 
-    const calendar = new FullCalendar.Calendar(calendarEl, {
+    calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         height: 'auto',
         displayEventTime: false,
