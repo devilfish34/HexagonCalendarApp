@@ -54,7 +54,7 @@ def calendar_view():
 
         file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
         file.save(file_path)
-        session["uploaded_file"] = file_path
+        session["uploaded_file"] = filename
         flash("File uploaded successfully.", category="success")
         return redirect("/calendar")
     return render_template("calendar.html")
