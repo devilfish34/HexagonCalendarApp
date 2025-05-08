@@ -97,11 +97,11 @@ document.addEventListener('DOMContentLoaded', async function () {
             }
 
             if (status.includes('ready')) {
-                info.el.style.backgroundColor = '#c1e1c1';
+                info.el.style.backgroundColor = '#218739';
             } else if (status.includes('planning')) {
                 info.el.style.backgroundColor = '#f59e0b';
             } else if (status.includes('approved')) {
-                info.el.style.backgroundColor = '#9ec5fe';
+                info.el.style.backgroundColor = '#0d6efd';
             } else if (status.includes('in process')) {
                 info.el.style.backgroundColor = '#f4a261';
             } else {
