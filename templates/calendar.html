@@ -50,6 +50,11 @@
 </head>
 <body>
   <div id="sidebar">
+    <form method="POST" enctype="multipart/form-data" style="margin-bottom: 1em;">
+    <label>Upload a new Excel File:</label>
+    <input type="file" name="file" accept=".xlsx" required>
+    <button type="submit">Upload</button>
+    </form>
     <div class="legend">
       <strong>Legend:</strong><br>
       <span style="background-color: #28a745;">Ready</span>
@@ -77,11 +82,6 @@
     </div>
     <div id="filters-building"></div>
   </div>
-  <form method="POST" enctype="multipart/form-data" style="margin-bottom: 1em;">
-    <label>Upload a new Excel File:</label>
-    <input type="file" name="file" accept=".xlsx" required>
-    <button type="submit">Upload</button>
-  </form>
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <ul class="flash-messages">
