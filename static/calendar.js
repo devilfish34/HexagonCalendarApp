@@ -75,6 +75,18 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth, timeGridDay, timeGridWeek, customTwoWeek'
+        },
+        views: {
+            customTwoWeek: {
+                type: 'dayGrid',
+                duration: { weeks: 2 },
+                buttonText: '2 Week'
+            }
+        },
         height: 'auto',
         displayEventTime: false,
         events: events,
