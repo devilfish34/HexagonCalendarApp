@@ -17,6 +17,8 @@ OPTIONAL_COLUMNS = {
 
 ALL_COLUMNS = {**REQUIRED_COLUMNS, **OPTIONAL_COLUMNS}
 
+BASE_URL = "https://eamprod.thefacebook.com/web/base/logindisp?tenant=DS_MP_1&FROMEMAIL=YES&SYSTEM_FUNCTION_NAME=WSJOBS&workordernum="
+
 def extract_work_orders(file_path):
     df = pd.read_excel(file_path, sheet_name="Sheet1")
     df = df.dropna(subset=[REQUIRED_COLUMNS["start_date"]])
@@ -42,9 +44,10 @@ def extract_work_orders(file_path):
 
 def format_for_calendar(df):
     c = {**REQUIRED_COLUMNS, **OPTIONAL_COLUMNS}
-
     events = []
+
     for _, row in df.iterrows():
+        wo_num = row[c["work_order"]]
         events.append({
             "title": f"{row.get(c['assigned_to'], '')} - {row[c['work_order']]}",
             "start": row[c["start_date"]].isoformat(),
@@ -53,7 +56,8 @@ def format_for_calendar(df):
             "description": row.get(c["description"], ""),
             "status": row.get(c["status"], ""),
             "type": row.get(c["type"], ""),
-            "building": row[c["building"]]
+            "building": row[c["building"]],
+            "url": f"{BASE_URL}{wo_num}"
         })
     return events
 

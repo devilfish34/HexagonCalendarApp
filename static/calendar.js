@@ -78,6 +78,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         height: 'auto',
         displayEventTime: false,
         events: events,
+
+        eventClick: function(info) {
+            if (info.event.url) {
+                window.open(info.event.url, '_blank');
+                info.jsEvent.preventDefault();
+            }
+        },
+
         eventDidMount: function(info) {
             // Status-based color
             const status = (info.event.extendedProps.status || '').toLowerCase();
@@ -85,6 +93,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             const textElement = info.el.querySelector('.fc-event-title');
             if (textElement) {
                 textElement.style.color = 'black';
+                textElement.style.fontWeight = 'bold';
             }
 
             if (status.includes('ready')) {
