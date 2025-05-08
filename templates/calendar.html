@@ -107,7 +107,7 @@
   </div>
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
-      <ul class="flash-messages">
+      <ul id="flash-container" class="flash-messages">
         {% for category, message in messages %}
           <li class="{{  category  }}">{{ message }}</li>
         {% endfor %}
@@ -118,5 +118,17 @@
 
 
 <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>
+<script>
+  window.addEventListener("DOMContentLoaded", function () {
+    const flash = document.getElementById("flash-container");
+    if (flash) {
+      setTimeout(() => {
+        flash.style.transition = "opacity 0.5s ease-out";
+        flash.style.opacity = "0";
+        setTimeout(() => flash.remove(), 500);
+      }, 4000); // 4 seconds before fading out
+    }
+  });
+</script>
 </body>
 </html>
