@@ -38,8 +38,24 @@ def upload():
     return render_template("index.html")
 
 
-@app.route("/calendar")
-def calendar():
+@app.route("/calendar", methods=["GET", "POST"])
+def calendar_view():
+    if request.method == "POST":
+        file = request.files.get("file")
+        if not file:
+            flash("No file uploaded.", category="warning")
+            return redirect("/calendar")
+
+        filename = secure_filename(file.filename)
+        if not filename.endswith(".xlsx"):
+            flash("Invalid file format. Please upload an Excel (.xlsx) file.", category="warning")
+            return redirect("/calendar")
+
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(file_path)
+        session["uploaded_file"] = file_path
+        flash("File uploaded successfully.", category="success")
+        return redirect("/calendar")
     return render_template("calendar.html")
 
 
