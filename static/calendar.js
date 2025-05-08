@@ -81,7 +81,11 @@ document.addEventListener('DOMContentLoaded', async function () {
         eventDidMount: function(info) {
             // Status-based color
             const status = (info.event.extendedProps.status || '').toLowerCase();
-            info.el.style.color = 'black';
+
+            const textElement = info.el.querySelector('.fc-event-title');
+            if (textElement) {
+                textElement.style.color = 'black';
+            }
 
             if (status.includes('ready')) {
                 info.el.style.backgroundColor = '#c1e1c1';
