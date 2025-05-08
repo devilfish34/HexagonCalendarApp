@@ -2,6 +2,7 @@ from flask import Flask, request, render_template, jsonify, url_for, redirect, s
 import os
 import uuid
 from data_parser import extract_work_orders, format_for_calendar
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
