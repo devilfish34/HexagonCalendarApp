@@ -32,7 +32,7 @@ def upload():
             print(f"Uploaded file saved to: {file_path}")
             print(f"Session file set: {session.get('uploaded_file')}")
 
-            return redirect(url_for("calendar"))
+            return redirect(url_for("calendar_view"))
         else:
             return render_template("index.html", error="Please select a valid Excel file.")
     return render_template("index.html")
