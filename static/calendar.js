@@ -81,16 +81,18 @@ document.addEventListener('DOMContentLoaded', async function () {
         eventDidMount: function(info) {
             // Status-based color
             const status = (info.event.extendedProps.status || '').toLowerCase();
+            info.el.style.color = 'black';
+
             if (status.includes('ready')) {
-                info.el.style.backgroundColor = '#28a745';
+                info.el.style.backgroundColor = '#c1e1c1';
             } else if (status.includes('planning')) {
-                info.el.style.backgroundColor = '#ffc107';
+                info.el.style.backgroundColor = '#f59e0b';
             } else if (status.includes('approved')) {
-                info.el.style.backgroundColor = '#007bff';
+                info.el.style.backgroundColor = '#9ec5fe';
             } else if (status.includes('in process')) {
-                info.el.style.backgroundColor = '#fd7e14';
+                info.el.style.backgroundColor = '#f4a261';
             } else {
-                info.el.style.backgroundColor = '#6c757d';
+                info.el.style.backgroundColor = '#e0e0e0';
             }
 
             // Hover tooltip using tippy.js
