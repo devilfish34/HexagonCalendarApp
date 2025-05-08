@@ -18,12 +18,8 @@ OPTIONAL_COLUMNS = {
 ALL_COLUMNS = {**REQUIRED_COLUMNS, **OPTIONAL_COLUMNS}
 
 def extract_work_orders(file_path):
-    print(f"🔍 Reading Excel from: {file_path}")
     df = pd.read_excel(file_path, sheet_name="Sheet1")
-    print("📄 Excel Headers:", df.columns.tolist())
-
     df = df.dropna(subset=[REQUIRED_COLUMNS["start_date"]])
-    print(f"📆 Rows after dropping missing start dates: {len(df)}")
 
     # Ensure date columns
     df[REQUIRED_COLUMNS["start_date"]] = pd.to_datetime(df[REQUIRED_COLUMNS["start_date"]])
@@ -41,7 +37,6 @@ def extract_work_orders(file_path):
             df[col] = ""  # or pd.NA, or np.nan depending on what you want
 
     all_needed_cols = list((REQUIRED_COLUMNS | OPTIONAL_COLUMNS).values())
-    print("✅ Returning cleaned DataFrame")
     return df[all_needed_cols]
 
 

@@ -37,7 +37,20 @@
       font-size: 0.9em;
     }
     .fc-daygrid-day-frame {
-      min-height: 80px;
+      display: flex;
+      flex-direction: column;
+      height: 150px;
+      overflow: hidden;
+    }
+    .fc-daygrid-day-events {
+      flex: 1;
+      overflow-y: auto;
+      padding-right: 4px;
+      scrollbar-width: thin;
+      scrollbar-color: #999 transparent;
+    }
+    .fc-daygrid-event-harness {
+      max-width: 100%;
     }
   </style>
 </head>
@@ -51,7 +64,7 @@
       <span style="background-color: #fd7e14; color: black;">In Process</span>
       <span style="background-color: #6c757d;">Other</span>
     </div>
-    <h4>Filter by Technician</h4>
+    <h4>Filter by Assignee</h4>
     <div id="filters-technician"></div>
     <h4>Filter by Status</h4>
     <div id="filters-status"></div>

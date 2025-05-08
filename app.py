@@ -11,6 +11,7 @@ UPLOAD_FOLDER = "uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+
 @app.route("/", methods=["GET", "POST"])
 def upload():
     if request.method == "POST":
@@ -36,9 +37,11 @@ def upload():
             return render_template("index.html", error="Please select a valid Excel file.")
     return render_template("index.html")
 
+
 @app.route("/calendar")
 def calendar():
     return render_template("calendar.html")
+
 
 @app.route("/api/events")
 def get_events():
