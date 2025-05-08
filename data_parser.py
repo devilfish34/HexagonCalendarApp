@@ -49,7 +49,6 @@ def format_for_calendar(df):
             "title": f"{row.get(c['assigned_to'], '')} - {row[c['work_order']]}",
             "start": row[c["start_date"]].isoformat(),
             "end": row[c["end_date"]].isoformat(),
-            "allDay": True,
             "description": row.get(c["description"], ""),
             "status": row.get(c["status"], ""),
             "type": row.get(c["type"], ""),
