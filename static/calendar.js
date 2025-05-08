@@ -1,3 +1,10 @@
+function setAllCheckboxes(groupName, check) {
+    const checkboxes = document.querySelectorAll(`input[name="${groupName}"]`);
+    checkboxes.forEach(cb => cb.checked = check);
+    const event = new Event('change');
+    checkboxes.forEach(cb => cb.dispatchEvent(event));
+}
+
 document.addEventListener('DOMContentLoaded', async function () {
     const calendarEl = document.getElementById('calendar');
     let calendar;
