@@ -46,6 +46,28 @@
     .fc-event-dot {
       display: none !important;
     }
+    .flash-messages {
+      padding: 1em;
+      margin: 1em 250px;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+    .flash-messages .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    .flash-messages .warning {
+      background-color: #fff3cd;
+      color: #856404;
+      border: 1px solid #ffeeba;
+    }
+    .flash-messages .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+
   </style>
 </head>
 <body>
@@ -86,8 +108,8 @@
   {% with messages = get_flashed_messages() %}
     {% if messages %}
       <ul class="flash-messages">
-        {% for message in messages %}
-          <li>{{ message }}</li>
+        {% for category, message in messages %}
+          <li class="{{  category  }}">{{ message }}</li>
         {% endfor %}
       </ul>
     {% endif %}
