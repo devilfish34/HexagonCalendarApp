@@ -8,103 +8,46 @@
   <script src="https://unpkg.com/@popperjs/core@2"></script>
   <script src="https://unpkg.com/tippy.js@6"></script>
   <link rel="stylesheet" href="https://unpkg.com/tippy.js@6/themes/light.css" />
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-    }
-    #calendar {
-      margin-left: 250px;
-      padding: 1em;
-    }
-    #sidebar {
-      position: fixed;
-      top: 0;
-      left: 0;
-      bottom: 0;
-      width: 240px;
-      background-color: #f8f9fa;
-      overflow-y: auto;
-      padding: 1em;
-      border-right: 1px solid #dee2e6;
-    }
-    .legend span {
-      display: inline-block;
-      padding: 0.3em 0.6em;
-      margin-right: 0.5em;
-      margin-bottom: 0.3em;
-      border-radius: 4px;
-      color: #fff;
-      font-size: 0.9em;
-    }
-    .fc-daygrid-day-frame {
-      height: auto;
-      overflow: visible;
-    }
-    .fc-daygrid-day-events {
-      overflow: visible;
-    }
-    .fc-event-dot {
-      display: none !important;
-    }
-    .flash-messages {
-      padding: 1em;
-      margin: 1em 250px;
-      border-radius: 5px;
-      font-weight: bold;
-    }
-    .flash-messages .success {
-      background-color: #d4edda;
-      color: #155724;
-      border: 1px solid #c3e6cb;
-    }
-    .flash-messages .warning {
-      background-color: #fff3cd;
-      color: #856404;
-      border: 1px solid #ffeeba;
-    }
-    .flash-messages .error {
-      background-color: #f8d7da;
-      color: #721c24;
-      border: 1px solid #f5c6cb;
-    }
-
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
-  <div id="sidebar">
-    <form method="POST" enctype="multipart/form-data" style="margin-bottom: 1em;">
-    <label>Upload a new Excel File:</label>
-    <input type="file" name="file" accept=".xlsx" required>
-    <button type="submit">Upload</button>
-    </form>
-    <div class="legend">
-      <strong>Legend:</strong><br>
-      <span style="background-color: #218739;">Ready</span>
-      <span style="background-color: #f59e0b;">Planning</span>
-      <span style="background-color: #0d6efd;">Approved</span>
-      <span style="background-color: #f4a261;">In Process</span>
-      <span style="background-color: #e0e0e0;">Other</span>
-
+    <button id="toggle-sidebar" class="toggle-button">Hide Filters</button>
+    <div id="sidebar-wrapper">
+      <div id="sidebar">
+        <form method="POST" enctype="multipart/form-data" class="upload-form">
+        <label>Upload a new Excel File:</label>
+        <input type="file" name="file" accept=".xlsx" required>
+        <button type="submit">Upload</button>
+        </form>
+        <div class="legend">
+          <strong>Legend:</strong><br>
+          <span style="background-color: #218739;">Ready</span>
+          <span style="background-color: #f59e0b;">Planning</span>
+          <span style="background-color: #0d6efd;">Approved</span>
+          <span style="background-color: #f4a261;">In Process</span>
+          <span style="background-color: #e0e0e0;">Other</span>
+        </div>
+        <input type="text" id="search-input" class="search-box">
+        <h4>Filter by Assignee</h4>
+        <div>
+          <button onclick="setAllCheckboxes('technician', true)">Select All</button>
+          <button onclick="setAllCheckboxes('technician', false)">Deselect All</button>
+        </div>
+        <div id="filters-technician"></div>
+        <h4>Filter by Status</h4>
+        <div>
+          <button onclick="setAllCheckboxes('status', true)">Select All</button>
+          <button onclick="setAllCheckboxes('status', false)">Deselect All</button>
+        </div>
+        <div id="filters-status"></div>
+        <h4>Filter by Building</h4>
+        <div>
+          <button onclick="setAllCheckboxes('building', true)">Select All</button>
+          <button onclick="setAllCheckboxes('building', false)">Deselect All</button>
+        </div>
+        <div id="filters-building"></div>
+      </div>
     </div>
-    <h4>Filter by Assignee</h4>
-    <div>
-      <button onclick="setAllCheckboxes('technician', true)">Select All</button>
-      <button onclick="setAllCheckboxes('technician', false)">Deselect All</button>
-    </div>
-    <div id="filters-technician"></div>
-    <h4>Filter by Status</h4>
-    <div>
-      <button onclick="setAllCheckboxes('status', true)">Select All</button>
-      <button onclick="setAllCheckboxes('status', false)">Deselect All</button>
-    </div>
-    <div id="filters-status"></div>
-    <h4>Filter by Building</h4>
-    <div>
-      <button onclick="setAllCheckboxes('building', true)">Select All</button>
-      <button onclick="setAllCheckboxes('building', false)">Deselect All</button>
-    </div>
-    <div id="filters-building"></div>
-  </div>
   {% with messages = get_flashed_messages(with_categories=true) %}
     {% if messages %}
       <ul id="flash-container" class="flash-messages">

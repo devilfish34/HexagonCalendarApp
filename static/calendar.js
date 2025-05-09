@@ -6,6 +6,14 @@ function setAllCheckboxes(groupName, check) {
 }
 
 document.addEventListener('DOMContentLoaded', async function () {
+    document.getElementById('search-input').addEventListener('input', updateCalendar);
+    document.getElementById('toggle-sidebar').addEventListener('click', () => {
+        const wrapper = document.getElementById('sidebar-wrapper');
+        const btn = document.getElementById('toggle-sidebar');
+        wrapper.classList.toggle('collapsed');
+        btn.textContent = wrapper.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
+    });
+
     const calendarEl = document.getElementById('calendar');
     let calendar;
     let allEvents = [];
@@ -51,7 +59,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     function updateCalendar() {
         const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
-
+        const searchText = document.getElementById('search-input').value.toLowerCase();
         const selectedTechs = getCheckedValues('technician');
         const selectedStatuses = getCheckedValues('status');
         const selectedBuildings = getCheckedValues('building');
@@ -61,9 +69,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             const status = event.status;
             const buildingValue = event.building || "Other";
 
-            return selectedTechs.includes(tech) &&
-                   selectedStatuses.includes(status) &&
-                   selectedBuildings.includes(buildingValue);
+            return (
+                selectedTechs.includes(tech) &&
+                selectedStatuses.includes(status) &&
+                selectedBuildings.includes(buildingValue) &&
+                (
+                    tech.toLowerCase().includes(searchText) ||
+                    event.title.toLowerCase().includes(searchText) ||
+                    event.description.toLowerCase().includes(searchText)
+                )
+            );
         });
 
         calendar.removeAllEvents();
