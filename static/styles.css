@@ -84,11 +84,18 @@ body {
 }
 
 .toggle-button {
-  margin: 10px;
   position: absolute;
-  top: 10px;
-  left: 10px;
-  z-index: 1000;
+  top: 1rem;
+  left: 250px; /* matches sidebar width */
+  z-index: 10;
+  padding: 4px 8px;
+  background: white;
+  border: 1px solid #ccc;
+  cursor: pointer;
+}
+
+#main-container.collapsed .toggle-button {
+  left: 10px; /* moves button to far left when sidebar is hidden */
 }
 
 .upload-form {

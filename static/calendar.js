@@ -7,12 +7,13 @@ function setAllCheckboxes(groupName, check) {
 
 document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('search-input').addEventListener('input', updateCalendar);
-    document.getElementById('toggle-sidebar').addEventListener('click', () => {
-        const wrapper = document.getElementById('main-container');
-        const btn = document.getElementById('toggle-sidebar');
-        wrapper.classList.toggle('collapsed');
-        btn.textContent = wrapper.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
+    const container = document.getElementById('main-container');
+    const btn = document.getElementById('toggle-sidebar');
+    btn.addEventListener('click', () => {
+        container.classList.toggle('collapsed');
+        btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
     });
+
 
     const calendarEl = document.getElementById('calendar');
     let calendar;
