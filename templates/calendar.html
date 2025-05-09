@@ -12,7 +12,7 @@
 </head>
 <body>
     <button id="toggle-sidebar" class="toggle-button">Hide Filters</button>
-    <div id="sidebar-wrapper">
+    <div id="main-container">
       <div id="sidebar">
         <form method="POST" enctype="multipart/form-data" class="upload-form">
         <label>Upload a new Excel File:</label>
@@ -47,17 +47,17 @@
         </div>
         <div id="filters-building"></div>
       </div>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul id="flash-container" class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{  category  }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
+      <div id="calendar"></div>
     </div>
-  {% with messages = get_flashed_messages(with_categories=true) %}
-    {% if messages %}
-      <ul id="flash-container" class="flash-messages">
-        {% for category, message in messages %}
-          <li class="{{  category  }}">{{ message }}</li>
-        {% endfor %}
-      </ul>
-    {% endif %}
-  {% endwith %}
-  <div id="calendar"></div>
 
 
 <script src="{{ url_for('static', filename='calendar.js') }}" defer></script>

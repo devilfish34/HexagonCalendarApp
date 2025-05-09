@@ -8,7 +8,7 @@ function setAllCheckboxes(groupName, check) {
 document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('search-input').addEventListener('input', updateCalendar);
     document.getElementById('toggle-sidebar').addEventListener('click', () => {
-        const wrapper = document.getElementById('sidebar-wrapper');
+        const wrapper = document.getElementById('main-container');
         const btn = document.getElementById('toggle-sidebar');
         wrapper.classList.toggle('collapsed');
         btn.textContent = wrapper.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';

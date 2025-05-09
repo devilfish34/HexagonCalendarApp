@@ -67,20 +67,14 @@ body {
   border: 1px solid #f5c6cb;
 }
 
-#sidebar-wrapper {
-    display: flex;
-    transition: margin-left 0.3s ease;
+#toggle-sidebar {
+  position: fixed;
+  top: 10px;
+  left: 10px;
+  z-index: 999;
+  padding: 4px 10px;
 }
 
-#sidebar-wrapper.collapsed {
-    margin-left: -250px;
-}
-#toggle-sidebar {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 1000;
-}
 
 .search-box {
   width: 100%;
@@ -99,4 +93,19 @@ body {
 
 .upload-form {
   margin: 1em 0;
+}
+
+#main-container {
+  display: flex;
+  transition: all 0.3s ease;
+}
+
+#main-container.collapsed #sidebar {
+  width: 0;
+  opacity: 0;
+  overflow: hidden;
+}
+
+#main-container.collapsed #calendar {
+  margin-left: 0;
 }
