@@ -12,7 +12,9 @@ document.addEventListener('DOMContentLoaded', async function () {
     btn.addEventListener('click', () => {
         container.classList.toggle('collapsed');
         btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
-        calendar.updateSize();
+        setTimeout(() => {
+            calendar.updateSize();
+        }, 300);
     });
 
 
@@ -52,7 +54,9 @@ document.addEventListener('DOMContentLoaded', async function () {
                     if (window.innerWidth <= 768) {
                         container.classList.add('collapsed');
                         btn.textContent = 'Show Filters';
-                        calendar.updateSize();
+                        setTimeout(() => {
+                            calendar.updateSize();
+                        }, 300),
                     }
                 });
                 label.appendChild(checkbox);
