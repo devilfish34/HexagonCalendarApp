@@ -47,16 +47,24 @@ def format_for_calendar(df):
     events = []
 
     for _, row in df.iterrows():
-        wo_num = row[c["work_order"]]
+        building = str(row[c["building"]]).strip()
+        description = str(row[c["description"], ""]).strip()
+        wo_num = str(row[c["work_order"]]).strip()
+
+        if description.lower().startswith(building.lower()):
+            description = description[len(building):].lstrip(" -:")
+
+        title = f"{building} - {description}"
+
         events.append({
-            "title": f"{row.get(c['assigned_to'], '')} - {row[c['work_order']]}",
+            "title": title,
             "start": row[c["start_date"]].isoformat(),
             "end": row[c["end_date"]].isoformat(),
             "allDay": True,
-            "description": row.get(c["description"], ""),
+            "description": description,
             "status": row.get(c["status"], ""),
             "type": row.get(c["type"], ""),
-            "building": row[c["building"]],
+            "building": building,
             "url": f"{BASE_URL}{wo_num}"
         })
     return events
