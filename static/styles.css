@@ -7,6 +7,12 @@ body {
   padding-right: 1rem;
 }
 
+#calendar-wrapper {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+}
+
 #sidebar {
   position: fixed;
   top: 0;
@@ -102,7 +108,6 @@ body {
   left: 10px; /* shifts when sidebar is hidden */
 }
 
-
 .upload-form {
   margin-top: 2rem;
   margin-bottom: 1rem;
@@ -151,6 +156,10 @@ body {
 @media screen and (max-width: 768px) {
   #main-container {
     flex-direction: column;
+  }
+
+  #calendar-wrapper {
+    width: 100%;
   }
   
   #sidebar {
