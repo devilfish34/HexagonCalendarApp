@@ -33,7 +33,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         const getUniqueSorted = (arr) => [...new Set(arr)].sort();
 
-        const technicians = getUniqueSorted(events.map(e => e.title.split(' - ')[0]));
+        const technicians = getUniqueSorted(events.map(e => e.assigned_to || ""));
         const statuses = getUniqueSorted(events.map(e => e.status));
         const buildings = getUniqueSorted(events.map(e => e.building || "Other"));
 
@@ -75,7 +75,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         const selectedBuildings = getCheckedValues('building');
 
         const filteredEvents = allEvents.filter(event => {
-            const tech = event.title.split(' - ')[0];
+            const tech = event.assigned_to || "";
             const status = event.status;
             const buildingValue = event.building || "Other";
 
