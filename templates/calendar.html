@@ -11,6 +11,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
 </head>
 <body>
+    <button id="toggle-sidebar" class="toggle-button">Hide Filters</button>
     {% with messages = get_flashed_messages(with_categories=true) %}
         {% if messages %}
           <ul id="flash-container" class="flash-messages">
@@ -21,7 +22,6 @@
         {% endif %}
       {% endwith %}
     <div id="main-container">
-      <button id="toggle-sidebar" class="toggle-button">Hide Filters</button>
       <div id="sidebar">
         <form method="POST" enctype="multipart/form-data" class="upload-form">
         <label>Upload a new Excel File:</label>

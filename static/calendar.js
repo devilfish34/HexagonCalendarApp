@@ -56,7 +56,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                         btn.textContent = 'Show Filters';
                         setTimeout(() => {
                             calendar.updateSize();
-                        }, 300),
+                        }, 300);
                     }
                 });
                 label.appendChild(checkbox);
