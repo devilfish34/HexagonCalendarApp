@@ -67,6 +67,52 @@ document.addEventListener('DOMContentLoaded', async function () {
         renderCheckboxGroup('filters-building', buildings, 'building');
     }
 
+    function renderSummary(events) {
+      const summaryContainer = document.getElementById('summary-container');
+      summaryContainer.innerHTML = ''; // Clear previous summary
+
+      const statusCounts = {};
+      const technicianCounts = {};
+      const buildingCounts = {};
+
+      events.forEach(event => {
+        // Count by status
+        const status = event.extendedProps.status || 'Unknown';
+        statusCounts[status] = (statusCounts[status] || 0) + 1;
+
+        // Count by technician
+        const technician = event.extendedProps.assigned_to || 'Unassigned';
+        technicianCounts[technician] = (technicianCounts[technician] || 0) + 1;
+
+        // Count by building
+        const building = event.extendedProps.building || 'Unknown';
+        buildingCounts[building] = (buildingCounts[building] || 0) + 1;
+      });
+
+      // Helper function to create summary sections
+      function createSummarySection(title, counts) {
+        const section = document.createElement('div');
+        section.classList.add('summary-section');
+        const heading = document.createElement('h4');
+        heading.textContent = title;
+        section.appendChild(heading);
+
+        const list = document.createElement('ul');
+        for (const [key, count] of Object.entries(counts)) {
+          const listItem = document.createElement('li');
+          listItem.textContent = `${key}: ${count}`;
+          list.appendChild(listItem);
+        }
+        section.appendChild(list);
+        return section;
+      }
+
+      summaryContainer.appendChild(createSummarySection('Status Summary', statusCounts));
+      summaryContainer.appendChild(createSummarySection('Technician Summary', technicianCounts));
+      summaryContainer.appendChild(createSummarySection('Building Summary', buildingCounts));
+    }
+
+
     function updateCalendar() {
         const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
         const searchText = document.getElementById('search-input').value.toLowerCase();
@@ -98,6 +144,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         setTimeout(() => {
             calendar.updateSize();
         }, 50);
+        renderSummary(filteredEvents);
     }
 
     const events = await fetchEvents();
