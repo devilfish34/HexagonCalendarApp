@@ -65,7 +65,8 @@ def format_for_calendar(df):
             "status": row.get(c["status"], ""),
             "type": row.get(c["type"], ""),
             "building": building,
-            "url": f"{BASE_URL}{wo_num}"
+            "url": f"{BASE_URL}{wo_num}",
+            "assigned_to": str(row.get(c["assigned_to"], "")).strip()
         })
     return events
 

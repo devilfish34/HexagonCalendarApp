@@ -140,9 +140,8 @@ document.addEventListener('DOMContentLoaded', async function () {
             // Hover tooltip using tippy.js
             tippy(info.el, {
                 content: `
-                    <strong>${info.event.title}</strong><br>
-                    ${info.event.extendedProps.description || ''}<br>
-                    <em>${info.event.extendedProps.status || ''}</em>
+                    <strong>${info.event.extendedProps.assigned_to || ''} - ${info.event.extendedProps.building || ''} ${info.event.extendedProps.description || ''}</strong><br>
+                    <em>Status:</em> ${info.event.extendedProps.status || ''}
                 `,
                 allowHTML: true,
                 theme: 'light',
