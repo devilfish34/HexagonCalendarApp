@@ -44,10 +44,11 @@ body {
 }
 
 .flash-messages {
+  width: 100%;
   padding: 1em;
-  margin: 1em 250px;
-  border-radius: 5px;
+  text-align: center;
   font-weight: bold;
+  margin: 1rem auto;
 }
 
 .flash-messages .success {
@@ -85,9 +86,9 @@ body {
 }
 
 .toggle-button {
-  position: absolute;
-  top: 1.25rem;
-  left: 250px; /* width of your sidebar */
+  position: fixed;
+  top: 10px;
+  left: 250px;
   z-index: 999;
   padding: 6px 10px;
   font-size: 0.85rem;

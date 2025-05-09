@@ -12,6 +12,15 @@
 </head>
 <body>
     <button id="toggle-sidebar" class="toggle-button">Hide Filters</button>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <ul id="flash-container" class="flash-messages">
+            {% for category, message in messages %}
+              <li class="{{  category  }}">{{ message }}</li>
+            {% endfor %}
+          </ul>
+        {% endif %}
+      {% endwith %}
     <div id="main-container">
       <div id="sidebar">
         <form method="POST" enctype="multipart/form-data" class="upload-form">
@@ -47,15 +56,6 @@
         </div>
         <div id="filters-building"></div>
       </div>
-      {% with messages = get_flashed_messages(with_categories=true) %}
-        {% if messages %}
-          <ul id="flash-container" class="flash-messages">
-            {% for category, message in messages %}
-              <li class="{{  category  }}">{{ message }}</li>
-            {% endfor %}
-          </ul>
-        {% endif %}
-      {% endwith %}
       <div id="calendar"></div>
     </div>
 

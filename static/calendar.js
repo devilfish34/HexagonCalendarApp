@@ -12,6 +12,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     btn.addEventListener('click', () => {
         container.classList.toggle('collapsed');
         btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
+        calendar.updateSize();
     });
 
 
