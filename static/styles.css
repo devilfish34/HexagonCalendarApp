@@ -123,3 +123,35 @@ body {
 #main-container.collapsed #calendar {
   margin-left: 0;
 }
+
+@keyframes pulse {
+  0%    { box-shadow: 0 0 0px 0px #4caf50; }
+  50%   { box-shadow: 0 0 10px 3px #4caf50; }
+  100%  { box-shadow: 0 0 0px 0px #4caf50; }
+}
+
+.filter-pulse {
+  animation: pulse 0.3s ease-in-out;
+}
+
+@media screen and (max-width: 768px) {
+  #main-container {
+    flex-direction: column;
+  }
+  
+  #sidebar {
+    width: 100%;
+    border-right: none;
+    border-bottom: 1px solid #ccc;
+  }
+  
+  #calendar {
+    margin-left: 0;
+    width: 100%;
+  }
+  
+  .toggle-button {
+    left: 10px;
+    top: 10px;
+  }
+}

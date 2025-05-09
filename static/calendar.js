@@ -46,7 +46,15 @@ document.addEventListener('DOMContentLoaded', async function () {
                 checkbox.value = value;
                 checkbox.name = name;
                 checkbox.checked = true;
-                checkbox.addEventListener('change', updateCalendar);
+                checkbox.addEventListener('change', () => {
+                    updateCalendar();
+
+                    if (window.innerWidth <= 768) {
+                        container.classList.add('collapsed');
+                        btn.textContent = 'Show Filters';
+                        calendar.updateSize();
+                    }
+                });
                 label.appendChild(checkbox);
                 label.append(` ${value}`);
                 container.appendChild(label);
@@ -85,6 +93,8 @@ document.addEventListener('DOMContentLoaded', async function () {
 
         calendar.removeAllEvents();
         calendar.addEventSource(filteredEvents);
+        calendarEl.classList.add('filter-pulse');
+        setTimeout(() => calendarEl.classList.remove('filter-pulse'), 300);
     }
 
     const events = await fetchEvents();
