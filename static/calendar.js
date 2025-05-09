@@ -95,6 +95,9 @@ document.addEventListener('DOMContentLoaded', async function () {
         calendar.addEventSource(filteredEvents);
         calendarEl.classList.add('filter-pulse');
         setTimeout(() => calendarEl.classList.remove('filter-pulse'), 300);
+        setTimeout(() => {
+            calendar.updateSize();
+        }, 50);
     }
 
     const events = await fetchEvents();
