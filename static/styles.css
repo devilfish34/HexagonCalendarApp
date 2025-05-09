@@ -85,18 +85,22 @@ body {
 
 .toggle-button {
   position: absolute;
-  top: 1rem;
-  left: 250px; /* matches sidebar width */
-  z-index: 10;
-  padding: 4px 8px;
-  background: white;
+  top: 1.25rem;
+  left: 250px; /* width of your sidebar */
+  z-index: 999;
+  padding: 6px 10px;
+  font-size: 0.85rem;
+  background-color: white;
   border: 1px solid #ccc;
+  border-radius: 4px;
   cursor: pointer;
+  transition: left 0.3s ease;
 }
 
-#main-container.collapsed .toggle-button {
-  left: 10px; /* moves button to far left when sidebar is hidden */
+#main-container.collapsed + #toggle-sidebar {
+  left: 10px; /* shifts when sidebar is hidden */
 }
+
 
 .upload-form {
   margin: 1em 0;
