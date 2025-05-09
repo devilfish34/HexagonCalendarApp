@@ -77,15 +77,15 @@ document.addEventListener('DOMContentLoaded', async function () {
 
       events.forEach(event => {
         // Count by status
-        const status = event.extendedProps.status || 'Unknown';
+        const status = event.status || 'Unknown';
         statusCounts[status] = (statusCounts[status] || 0) + 1;
 
         // Count by technician
-        const technician = event.extendedProps.assigned_to || 'Unassigned';
+        const technician = event.assigned_to || 'Unassigned';
         technicianCounts[technician] = (technicianCounts[technician] || 0) + 1;
 
         // Count by building
-        const building = event.extendedProps.building || 'Unknown';
+        const building = event.building || 'Unknown';
         buildingCounts[building] = (buildingCounts[building] || 0) + 1;
       });
 
