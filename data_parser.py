@@ -48,7 +48,7 @@ def format_for_calendar(df):
 
     for _, row in df.iterrows():
         building = str(row[c["building"]]).strip()
-        description = str(row[c["description"], ""]).strip()
+        description = str(row.get(c["description"], "")).strip()
         wo_num = str(row[c["work_order"]]).strip()
 
         if description.lower().startswith(building.lower()):
