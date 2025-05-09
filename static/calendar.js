@@ -76,27 +76,15 @@ document.addEventListener('DOMContentLoaded', async function () {
       summaryContainer.innerHTML = ''; // Clear previous summary
 
       const statusCounts = {};
-      const technicianCounts = {};
-      const buildingCounts = {};
-
       events.forEach(event => {
-        // Count by status
-        const status = event.status || 'Unknown';
+        const status = (event.status || 'Unknown').trim();
         statusCounts[status] = (statusCounts[status] || 0) + 1;
-
-        // Count by technician
-        const technician = event.assigned_to || 'Unassigned';
-        technicianCounts[technician] = (technicianCounts[technician] || 0) + 1;
-
-        // Count by building
-        const building = event.building || 'Unknown';
-        buildingCounts[building] = (buildingCounts[building] || 0) + 1;
       });
 
-      // Helper function to create summary sections
       function createSummarySection(title, counts) {
         const section = document.createElement('div');
         section.classList.add('summary-section');
+
         const heading = document.createElement('h4');
         heading.textContent = title;
         section.appendChild(heading);
@@ -107,13 +95,19 @@ document.addEventListener('DOMContentLoaded', async function () {
           listItem.textContent = `${key}: ${count}`;
           list.appendChild(listItem);
         }
+
         section.appendChild(list);
         return section;
       }
 
-      summaryContainer.appendChild(createSummarySection('Status Summary', statusCounts));
-      summaryContainer.appendChild(createSummarySection('Technician Summary', technicianCounts));
-      summaryContainer.appendChild(createSummarySection('Building Summary', buildingCounts));
+      const statusSection = createSummarySection('Status Summary', statusCounts);
+
+      const totalSection = document.createElement('div');
+      totalSection.classList.add('summary-section');
+      totalSection.innerHTML = `<h4>Total Work Orders</h4><p>${events.length}</p>`;
+
+      summaryContainer.appendChild(statusSection);
+      summaryContainer.appendChild(totalSection);
     }
 
 
@@ -219,4 +213,5 @@ document.addEventListener('DOMContentLoaded', async function () {
     });
 
     calendar.render();
+    updateCalendar();
 });
