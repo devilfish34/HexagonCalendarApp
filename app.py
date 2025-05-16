@@ -1,19 +1,21 @@
 from flask import Flask, request, render_template, jsonify, redirect, session, flash
 import os
 import io
-import pandas as pd
+import uuid
 from data_parser import extract_work_orders, format_for_calendar
 from werkzeug.utils import secure_filename
 
+
+UPLOAD_FOLDER = "uploads"
+MAX_FILE_SIZE_MB = 5
+ALLOWED_EXTENSIONS = {".xlsx"}
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
-UPLOAD_FOLDER = "uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-MAX_FILE_SIZE_MB = 5
 
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
@@ -24,33 +26,33 @@ def upload_file():
             flash("No file uploaded.", "error")
             return redirect(request.url)
 
-        if not file.filename.endswith(".xlsx"):
+        ext = os.path.splitext(file.filename)[1].lower()
+        if ext not in ALLOWED_EXTENSIONS:
             flash("Only .xlsx files are supported.", "error")
             return redirect(request.url)
 
         file.seek(0, io.SEEK_END)
         file_size = file.tell()
         file.seek(0)
-
         if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
             flash(f"File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
             return redirect(request.url)
 
         try:
-            df = pd.read_excel(file)
+            if "user_id" not in session:
+                session["user_id"] = str(uuid.uuid4())
 
-        # REMOVED FILE SAVING IN FAVOR OF PROCESSING STRAIGHT FROM MEMORY
-        # filename = secure_filename(file.filename)
-        # save_path = os.path.join("uploads", filename)
-        # file.save(save_path)
+            filename = f"{session['user_id']}.xlsx"
+            save_path = os.path.join(UPLOAD_FOLDER, filename)
+            file.save(save_path)
 
-            if 'upload_history' not in session:
-                session['upload_history'] = []
-            session['upload_history'].append({
+            session["upload_history"] = session.get("upload_history", [])
+            session["upload_history"].append({
                 "filename": file.filename,
                 "size_kb": round(file_size / 1024, 2)
             })
 
+            flash("File uploaded and saved successfully.", "success")
             return redirect("/calendar")
         except Exception as e:
             flash("There was an error processing the Excel file.", "error")
@@ -83,7 +85,10 @@ def calendar_view():
 
 @app.route("/api/events")
 def get_events():
-    print("🚨 /api/events CALLED")
+    user_id = session["user_id"]
+    if not user_id:
+        return jsonify([])
+    
     try:
         filename = session.get("uploaded_file")
         print(f"📥 Session uploaded_file: {filename}")
