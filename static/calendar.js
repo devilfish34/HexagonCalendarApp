@@ -75,42 +75,26 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function renderSummary(events) {
-      const summaryContainer = document.getElementById('summary-container');
-      summaryContainer.innerHTML = ''; // Clear previous summary
+      const counts = {
+        "Planning": 0,
+        "Approved:"0,
+        "Ready": 0,
+        "In Process": 0
+      };
 
-      const statusCounts = {};
-      events.forEach(event => {
-        const status = (event.status || 'Unknown').trim();
-        statusCounts[status] = (statusCounts[status] || 0) + 1;
+      events.forEach(even => {
+        const status = (event.status || '').trim();
+        if (counts.hasOwnProperty(status)) {
+            counts[status]++;
+        }
       });
 
-      function createSummarySection(title, counts) {
-        const section = document.createElement('div');
-        section.classList.add('summary-section');
-
-        const heading = document.createElement('h4');
-        heading.textContent = title;
-        section.appendChild(heading);
-
-        const list = document.createElement('ul');
-        for (const [key, count] of Object.entries(counts)) {
-          const listItem = document.createElement('li');
-          listItem.textContent = `${key}: ${count}`;
-          list.appendChild(listItem);
-        }
-
-        section.appendChild(list);
-        return section;
-      }
-
-      const statusSection = createSummarySection('Status Summary', statusCounts);
-
-      const totalSection = document.createElement('div');
-      totalSection.classList.add('summary-section');
-      totalSection.innerHTML = `<h4>Total Work Orders</h4><p>${events.length}</p>`;
-
-      summaryContainer.appendChild(statusSection);
-      summaryContainer.appendChild(totalSection);
+      document.getElementById("summary-planning").textContent = counts["Planning"];
+      document.getElementById("summary-approved").textContent = counts["Approved"];
+      document.getElementById("summary-ready").textContent = counts["Ready"];
+      document.getElementById("summary-inprocess").textContent = counts["In Process"];
+      document.getElementById("summary-total").textContent =
+        counts["Planning"] + counts["Ready"] + counts["Approved"] + counts["In Process"];
     }
 
 

@@ -30,13 +30,21 @@
         </form>
         <div class="legend">
           <strong>Legend:</strong><br>
-          <span style="background-color: #218739;">Ready</span>
-          <span style="background-color: #f59e0b;">Planning</span>
+          <span style="background-color: #203731;">Ready</span>
+          <span style="background-color: #ffb612;">Planning</span>
           <span style="background-color: #0d6efd;">Approved</span>
           <span style="background-color: #f4a261;">In Process</span>
           <span style="background-color: #e0e0e0;">Other</span>
         </div>
         <input type="text" id="search-input" class="search-box">
+        <div id="workOrderSummary" class="summary-section">
+          <h3>Work Order Summary</h3>
+          <p>Planning: <span id="summary-planning">0</span></p>
+          <p>Approved: <span id="summary-approved">0</span></p>
+          <p>Ready: <span id="summary-ready">0</span></p>
+          <p>In Process: <span id="summary-inprocess">0</span></p>
+          <p><strong>Total: <span id="summary-total">0</span></strong></p>
+        </div>
         <h4>Filter by Assignee</h4>
         <div>
           <button onclick="setAllCheckboxes('technician', true)">Select All</button>
@@ -58,8 +66,7 @@
       </div>
         <div id="calendar-wrapper">
             <div id="calendar"></div>
-
-            <div id="summary-container" class="summary-container"></div>
+            <!-- <div id="summary-container" class="summary-container"></div> OLD SUMMARY LOCATION-->
         </div>
     </div>
 

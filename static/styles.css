@@ -155,3 +155,8 @@ body {
     left: 10px;
   }
 }
+
+#workOrderSummary p {
+    margin: 0.25em 0;
+    font-size: 0.95em;
+}
