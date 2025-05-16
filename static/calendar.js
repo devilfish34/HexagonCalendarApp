@@ -77,7 +77,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     function renderSummary(events) {
       const counts = {
         "Planning": 0,
-        "Approved:"0,
+        "Approved": 0,
         "Ready": 0,
         "In Process": 0
       };
