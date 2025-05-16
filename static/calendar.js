@@ -24,6 +24,18 @@ document.addEventListener('DOMContentLoaded', async function () {
     let calendar;
     let allEvents = [];
 
+    function applyQueryFilters() {
+        const params = new URLSearchParams(window.location.search);
+        ['technician', 'status', 'building'].forEach(name => {
+            const values = params.getAll(name);
+            if (values.length > 0) {
+                document.querySelectorAll(`input[name="${name}"]`).forEach(cb => {
+                    cb.checked = values.includes(cb.value);
+                });
+            }
+        });
+    }
+
     async function fetchEvents() {
         const res = await fetch('/api/events');
         allEvents = await res.json();
@@ -134,6 +146,7 @@ document.addEventListener('DOMContentLoaded', async function () {
 
     const events = await fetchEvents();
     renderFilters(events);
+    applyQueryFilters();
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
