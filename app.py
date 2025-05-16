@@ -88,36 +88,17 @@ def get_events():
     user_id = session["user_id"]
     if not user_id:
         return jsonify([])
-    
+
+    file_path = os.path.join(UPLOAD_FOLDER, f"{user_id}.xlsx")
+    if not os.path.exists(file_path):
+        return jsonify([])
+
     try:
-        filename = session.get("uploaded_file")
-        print(f"📥 Session uploaded_file: {filename}")
-
-        if not filename:
-            print("⚠️ No uploaded file in session.")
-            return jsonify([])
-
-        file_path = os.path.join(UPLOAD_FOLDER, filename)
-        print(f"📦 Looking for file at: {file_path}")
-
-        if not os.path.exists(file_path):
-            print("❌ Uploaded file not found on disk.")
-            return jsonify([])
-
         df = extract_work_orders(file_path)
-
-        print(f"✅ Extracted {len(df)} rows from Excel")
-        print(df.head().to_string())  # show a sample
-
         events = format_for_calendar(df)
-        print(f"📅 Returning {len(events)} events to calendar")
-
         return jsonify(events)
-
     except Exception as e:
-        print("🔥 ERROR in /api/events:", str(e))
-        import traceback
-        traceback.print_exc()
+        print(f"Error parsing Excel file for user {user_id}: {e}")
         return jsonify([])
 
 
