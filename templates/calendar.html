@@ -25,7 +25,22 @@
       <div id="sidebar">
         <form method="POST" enctype="multipart/form-data" class="upload-form">
         <label>Upload a new Excel File:</label>
-        <input type="file" name="file" accept=".xlsx" required>
+        <input type="file" name="file" id="file" accept=".xlsx" required onchange="validateFile(this)">
+
+        <script>
+            function validateFile(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const isExcel = file.name.endsWith('.xlsx');
+                const under5MB = file.size <= 5 * 1024 * 1024;
+
+                if (!isExcel || !under5MB) {
+                    alert("Only Excel (.xlsx) files under 5MB are allowed.");
+                    input.value = ''; // Clear the file input
+                }
+            }
+        </script>
         <button type="submit">Upload</button>
         </form>
         <div class="legend">

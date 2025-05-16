@@ -1,6 +1,7 @@
-from flask import Flask, request, render_template, jsonify, url_for, redirect, session, flash
+from flask import Flask, request, render_template, jsonify, redirect, session, flash
 import os
-import uuid
+import io
+import pandas as pd
 from data_parser import extract_work_orders, format_for_calendar
 from werkzeug.utils import secure_filename
 
@@ -12,30 +13,50 @@ UPLOAD_FOLDER = "uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
+MAX_FILE_SIZE_MB = 5
 
 @app.route("/", methods=["GET", "POST"])
-def upload():
+def upload_file():
     if request.method == "POST":
-        file = request.files["file"]
-        if file:
-            filename = f"{uuid.uuid4()}_{file.filename}"
-            file_path = os.path.join(UPLOAD_FOLDER, filename)
-            file.save(file_path)
+        file = request.files.get("file")
 
-            try:
-                extract_work_orders(file_path)
-            except ValueError as ve:
-                print(f"Upload failed: {ve}", flush=True)
-                return render_template("index.html", error=str(ve))
+        if not file:
+            flash("No file uploaded.", "error")
+            return redirect(request.url)
 
-            session["uploaded_file"] = filename
+        if not file.filename.endswith(".xlsx"):
+            flash("Only .xlsx files are supported.", "error")
+            return redirect(request.url)
 
-            print(f"Uploaded file saved to: {file_path}")
-            print(f"Session file set: {session.get('uploaded_file')}")
+        file.seek(0, io.SEEK_END)
+        file_size = file.tell()
+        file.seek(0)
 
-            return redirect(url_for("calendar_view"))
-        else:
-            return render_template("index.html", error="Please select a valid Excel file.")
+        if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
+            flash(f"File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
+            return redirect(request.url)
+
+        try:
+            df = pd.read_excel(file)
+
+        # REMOVED FILE SAVING IN FAVOR OF PROCESSING STRAIGHT FROM MEMORY
+        # filename = secure_filename(file.filename)
+        # save_path = os.path.join("uploads", filename)
+        # file.save(save_path)
+
+            if 'upload_history' not in session:
+                session['upload_history'] = []
+            session['upload_history'].append({
+                "filename": file.filename,
+                "size_kb": round(file_size / 1024, 2)
+            })
+
+            return redirect("/calendar")
+        except Exception as e:
+            flash("There was an error processing the Excel file.", "error")
+            print(e)
+            return redirect(request.url)
+
     return render_template("index.html")
 
 

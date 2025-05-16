@@ -101,7 +101,21 @@
 
     <form action="/" method="post" enctype="multipart/form-data">
       <label for="file">Select Excel File:</label>
-      <input type="file" name="file" id="file" accept=".xlsx" required>
+      <input type="file" name="file" id="file" accept=".xlsx" required onchange="validateFile(this)">
+        <script>
+            function validateFile(input) {
+                const file = input.files[0];
+                if (!file) return;
+
+                const isExcel = file.name.endsWith('.xlsx');
+                const under5MB = file.size <= 5 * 1024 * 1024;
+
+                if (!isExcel || !under5MB) {
+                    alert("Only Excel (.xlsx) files under 5MB are allowed.");
+                    input.value = ''; // Clear the file input
+                }
+            }
+        </script>
       <button type="submit" class="submit-btn">Upload</button>
     </form>
   </div>
