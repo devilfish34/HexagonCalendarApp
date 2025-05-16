@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         "In Process": 0
       };
 
-      events.forEach(even => {
+      events.forEach(event => {
         const status = (event.status || '').trim();
         if (counts.hasOwnProperty(status)) {
             counts[status]++;
@@ -173,7 +173,7 @@ document.addEventListener('DOMContentLoaded', async function () {
             if (status.includes('ready')) {
                 info.el.style.backgroundColor = '#218739';
             } else if (status.includes('planning')) {
-                info.el.style.backgroundColor = '#f59e0b';
+                info.el.style.backgroundColor = '#ffb612';
             } else if (status.includes('approved')) {
                 info.el.style.backgroundColor = '#0d6efd';
             } else if (status.includes('in process')) {
