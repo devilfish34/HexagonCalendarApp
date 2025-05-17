@@ -65,20 +65,6 @@ body {
   margin: 0.2rem 0;
 }
 
-.toggle-button {
-  position: fixed;
-  top: 10px;
-  left: 250px;
-  z-index: 1000;
-  padding: 6px 10px;
-  font-size: 0.85rem;
-  background-color: white;
-  border: 1px solid #ccc;
-  border-radius: 4px;
-  cursor: pointer;
-  transition: left 0.3s ease;
-}
-
 #main-container.collapsed + #toggle-sidebar {
   left: 10px;
 }

@@ -342,14 +342,3 @@ document.addEventListener('DOMContentLoaded', async function () {
 });
 
 
-    //
-    // REMOVING SHOW/HIDE FILTERS BUTTON FOR NOW
-    // const btn = document.getElementById('toggle-sidebar');
-    // btn.addEventListener('click', () => {
-    //    container.classList.toggle('collapsed');
-    //    btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
-    //    setTimeout(() => {
-    //        calendar.updateSize();
-    //    }, 300);
-    // });
-    //
