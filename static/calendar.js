@@ -7,7 +7,6 @@ function setAllCheckboxes(groupName, check) {
 
 function exportToPDF() {
     const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
-
     const summaryHTML = document.getElementById('workOrderSummary').outerHTML;
 
     const rows = visibleEvents.map(ev => `
@@ -54,7 +53,6 @@ function exportToPDF() {
         jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
     }).save();
 }
-
 
 function exportToExcel() {
     const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
@@ -138,7 +136,6 @@ function exportToHTML() {
     document.body.removeChild(link);
 }
 
-
 let calendar;
 
 document.addEventListener('DOMContentLoaded', async function () {
@@ -146,7 +143,6 @@ document.addEventListener('DOMContentLoaded', async function () {
     const container = document.getElementById('main-container');
 
     const calendarEl = document.getElementById('calendar');
-    // let calendar; Moved to global scope to try and fix Excel export
     let allEvents = [];
 
     function applyQueryFilters() {
@@ -187,18 +183,7 @@ document.addEventListener('DOMContentLoaded', async function () {
                 checkbox.value = value;
                 checkbox.name = name;
                 checkbox.checked = true;
-                checkbox.addEventListener('change', () => {
-                    updateCalendar();
-
-                    // REMOVING SHOW/HIDE FILTERS BUTTON FOR NOW
-                    // if (window.innerWidth <= 768) {
-                    //    container.classList.add('collapsed');
-                    //    btn.textContent = 'Show Filters';
-                    //    setTimeout(() => {
-                    //        calendar.updateSize();
-                    //    }, 300);
-                    // }
-                });
+                checkbox.addEventListener('change', updateCalendar);
                 label.appendChild(checkbox);
                 label.append(` ${value}`);
                 container.appendChild(label);
@@ -212,28 +197,27 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function renderSummary(events) {
-      const counts = {
-        "Planning": 0,
-        "Approved": 0,
-        "Ready": 0,
-        "In Process": 0
-      };
+        const counts = {
+            "Planning": 0,
+            "Approved": 0,
+            "Ready": 0,
+            "In Process": 0
+        };
 
-      events.forEach(event => {
-        const status = (event.status || '').trim();
-        if (counts.hasOwnProperty(status)) {
-            counts[status]++;
-        }
-      });
+        events.forEach(event => {
+            const status = (event.status || '').trim();
+            if (counts.hasOwnProperty(status)) {
+                counts[status]++;
+            }
+        });
 
-      document.getElementById("summary-planning").textContent = counts["Planning"];
-      document.getElementById("summary-approved").textContent = counts["Approved"];
-      document.getElementById("summary-ready").textContent = counts["Ready"];
-      document.getElementById("summary-inprocess").textContent = counts["In Process"];
-      document.getElementById("summary-total").textContent =
-        counts["Planning"] + counts["Ready"] + counts["Approved"] + counts["In Process"];
+        document.getElementById("summary-planning").textContent = counts["Planning"];
+        document.getElementById("summary-approved").textContent = counts["Approved"];
+        document.getElementById("summary-ready").textContent = counts["Ready"];
+        document.getElementById("summary-inprocess").textContent = counts["In Process"];
+        document.getElementById("summary-total").textContent =
+            counts["Planning"] + counts["Ready"] + counts["Approved"] + counts["In Process"];
     }
-
 
     function updateCalendar() {
         const getCheckedValues = (name) => Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
@@ -263,9 +247,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         calendar.addEventSource(filteredEvents);
         calendarEl.classList.add('filter-pulse');
         setTimeout(() => calendarEl.classList.remove('filter-pulse'), 300);
-        setTimeout(() => {
-            calendar.updateSize();
-        }, 50);
+        setTimeout(() => calendar.updateSize(), 50);
         renderSummary(filteredEvents);
     }
 
@@ -278,7 +260,7 @@ document.addEventListener('DOMContentLoaded', async function () {
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth, timeGridDay, timeGridWeek, customTwoWeek'
+            right: 'dayGridMonth,timeGridDay,timeGridWeek,customTwoWeek'
         },
         views: {
             customTwoWeek: {
@@ -299,40 +281,36 @@ document.addEventListener('DOMContentLoaded', async function () {
         },
 
         eventDidMount: function(info) {
-            // Status-based color
-            const status = (info.event.extendedProps.status || '').toLowerCase();
+            const event = info.event;
+            const props = event.extendedProps;
+            const view = calendar.view.type;
 
-            const textElement = info.el.querySelector('.fc-event-title');
-            if (textElement) {
-                textElement.style.color = 'black';
-                textElement.style.fontWeight = 'bold';
+            if (view === 'dayGridMonth' && props.is_activity) {
+                info.el.style.display = 'none';
+                return;
             }
 
-            if (status.includes('ready')) {
-                info.el.style.backgroundColor = '#218739';
-            } else if (status.includes('planning')) {
-                info.el.style.backgroundColor = '#ffb612';
-            } else if (status.includes('approved')) {
-                info.el.style.backgroundColor = '#0d6efd';
-            } else if (status.includes('in process')) {
-                info.el.style.backgroundColor = '#e895d2';
-            } else {
-                info.el.style.backgroundColor = '#e0e0e0';
-            }
+            const status = (props.status || '').toLowerCase();
+            if (status.includes('ready')) info.el.style.backgroundColor = '#218739';
+            else if (status.includes('planning')) info.el.style.backgroundColor = '#ffb612';
+            else if (status.includes('approved')) info.el.style.backgroundColor = '#0d6efd';
+            else if (status.includes('in process')) info.el.style.backgroundColor = '#e895d2';
+            else if (status.includes('unassigned')) info.el.style.backgroundColor = '#ff4d4d';
+            else info.el.style.backgroundColor = '#e0e0e0';
 
-            // Hover tooltip using tippy.js
+            const tooltipContent = props.is_activity
+                ? `<strong>${event.title}</strong><br><em>Status:</em> ${props.status}`
+                : `<strong>${event.title}</strong><br><em>Status:</em> ${props.status}<br>${(props.activities || []).join('<br>')}`;
+
             tippy(info.el, {
-                content: `
-                    <strong>${info.event.extendedProps.assigned_to || ''} - ${info.event.extendedProps.building || ''} ${info.event.extendedProps.description || ''}</strong><br>
-                    <em>Status:</em> ${info.event.extendedProps.status || ''}
-                `,
+                content: tooltipContent,
                 allowHTML: true,
                 theme: 'light',
                 placement: 'top',
                 trigger: 'mouseenter focus',
                 interactive: false,
                 hideOnClick: false,
-                delay: [0, 100],
+                delay: [0, 100]
             });
         }
     });
@@ -340,5 +318,3 @@ document.addEventListener('DOMContentLoaded', async function () {
     calendar.render();
     updateCalendar();
 });
-
-
