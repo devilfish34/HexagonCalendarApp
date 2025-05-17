@@ -1,4 +1,5 @@
-from flask import Flask, render_template, request, redirect, flash, jsonify
+
+from flask import Flask, render_template, request, redirect, flash, jsonify, session
 from flask_session import Session
 import pandas as pd
 import io, os
@@ -9,8 +10,6 @@ app.config["SESSION_TYPE"] = "filesystem"
 Session(app)
 
 MAX_FILE_SIZE_MB = 5
-
-# Store parsed events in memory
 parsed_events = []
 
 def build_event(row, is_activity=False, extra=None):
@@ -29,19 +28,29 @@ def build_event(row, is_activity=False, extra=None):
             "status": extra.get("status", ""),
             "description": extra.get("description", ""),
             "assigned_to": extra.get("assigned_to", ""),
-            "is_activity": True
+            "is_activity": True,
+            "url": ""
         }
     else:
+        wo = str(row.get("work order"))
+        building = row.get("data center", "")
+        desc = row.get("description", "")
+        assignee = row.get("assigned to name", "")
+        status = row.get("status", "")
+        title = f"{building} {wo} – {desc}"
+        tooltip = f"{assignee} – {building} – {desc} – {status} – {wo}"
         return {
-            "title": str(row.get("work order")),
+            "title": title,
             "start": format_date(row.get("sched. start date")),
             "end": format_date(row.get("sched. end date")),
-            "work_order": str(row.get("work order")),
-            "building": row.get("data center", ""),
-            "status": row.get("status", ""),
-            "description": row.get("description", ""),
-            "assigned_to": row.get("assigned to name", ""),
-            "is_activity": False
+            "work_order": wo,
+            "building": building,
+            "status": status,
+            "description": desc,
+            "assigned_to": assignee,
+            "tooltip": tooltip,
+            "is_activity": False,
+            "url": f"https://eamprod.thefacebook.com/web/base/logindisp?tenant=DS_MP_1&FROMEMAIL=YES&SYSTEM_FUNCTION_NAME=WSJOBS&workordernum={wo}"
         }
 
 def detect_file_type(df: pd.DataFrame) -> str:
@@ -89,7 +98,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
             activities.append(f"{emp_display} – {note}")
 
         events.append({
-            "title": str(wo_number),
+            "title": f"{building} {wo_number} – {wo_desc}",
             "start": start,
             "end": end,
             "description": wo_desc,
@@ -98,7 +107,8 @@ def parse_activity_file(df: pd.DataFrame) -> list:
             "building": building,
             "activities": activities,
             "work_order": str(wo_number),
-            "is_activity": False
+            "is_activity": False,
+            "url": f"https://eamprod.thefacebook.com/web/base/logindisp?tenant=DS_MP_1&FROMEMAIL=YES&SYSTEM_FUNCTION_NAME=WSJOBS&workordernum={wo_number}"
         })
 
         for _, row in group.iterrows():
@@ -127,19 +137,15 @@ def parse_uploaded_file(df: pd.DataFrame) -> list:
         return parse_activity_file(df)
     elif file_type == "workorder":
         return parse_workorder_file(df)
-    raise ValueError("Unrecognized file format. Expecting Work Order or Activity-level file.")
+    raise ValueError("Unrecognized file format.")
 
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     global parsed_events
     if request.method == "POST":
         file = request.files.get("file")
-        if not file:
-            flash("No file uploaded.", "error")
-            return redirect("/calendar")
-
-        if not file.filename.endswith(".xlsx"):
-            flash("Only Excel (.xlsx) files are supported.", "error")
+        if not file or not file.filename.endswith(".xlsx"):
+            flash("Only .xlsx files are supported.", "error")
             return redirect("/calendar")
 
         file.seek(0, io.SEEK_END)
@@ -147,7 +153,7 @@ def upload_file():
         file.seek(0)
 
         if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
-            flash(f"File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
+            flash("File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
             return redirect("/calendar")
 
         try:
