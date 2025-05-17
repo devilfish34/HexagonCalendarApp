@@ -148,11 +148,15 @@ def upload_file():
 
         try:
             df = pd.read_excel(file)
-            print("Uploaded columns:", df.columns.tolist())
-            print("First few rows:")
-            print(df.head().to_string())
+            df.columns = [col.strip().lower() for col in df.columns]
+            df.rename(columns=lambda x: x.strip().lower(), inplace=True)
+
+            app.logger.info("Uploaded columns: %s", df.columns.tolist())
+            app.logger.info("First 5 rows:\n%s", df.head().to_string())
+
             session["events"] = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
+
         except Exception as e:
             flash(f"Failed to process file: {str(e)}", "error")
 
