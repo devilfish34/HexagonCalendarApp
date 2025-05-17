@@ -1,13 +1,17 @@
-from flask import Flask, render_template, request, redirect, flash, session, jsonify
+from flask import Flask, render_template, request, redirect, flash, jsonify
+from flask_session import Session
 import pandas as pd
 import io, os
 
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
-app.config["SESSION_COOKIE_SECURE"] = True
-app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+app.config["SESSION_TYPE"] = "filesystem"
+Session(app)
 
 MAX_FILE_SIZE_MB = 5
+
+# Store parsed events in memory
+parsed_events = []
 
 def build_event(row, is_activity=False, extra=None):
     def format_date(value):
@@ -55,23 +59,7 @@ def parse_workorder_file(df: pd.DataFrame) -> list:
         raise ValueError(f"Missing required columns: {missing}")
     return [build_event(row) for _, row in df.iterrows()]
 
-def parse_uploaded_file(df: pd.DataFrame) -> list:
-    df.columns = [col.strip().lower() for col in df.columns]
-    df.rename(columns=lambda x: x.strip().lower(), inplace=True)
-    file_type = detect_file_type(df)
-
-    app.logger.info("Normalized columns: %s", df.columns.tolist())
-    app.logger.info("File type detected: %s", file_type)
-
-    if file_type == "activity":
-        return parse_activity_file(df)
-    elif file_type == "workorder":
-        return parse_workorder_file(df)
-    raise ValueError("Unrecognized file format. Expecting Work Order or Activity-level file.")
-
 def parse_activity_file(df: pd.DataFrame) -> list:
-    app.logger.info("Parsing activity file. First 3 rows:\n%s", df.head(3).to_string())
-
     required = [
         "wo number", "wo description", "wo status", "data center",
         "wo sched. start date", "wo sched. end date", "act note",
@@ -84,17 +72,68 @@ def parse_activity_file(df: pd.DataFrame) -> list:
     df = df.dropna(subset=["activity start"])
     events = []
     grouped = df.groupby(df["wo number"])
+
     for wo_number, group in grouped:
-        # ... [unchanged parsing logic here] ...
-        pass  # keep the rest of your original logic
+        wo_desc = group["wo description"].iloc[0]
+        wo_status = group["wo status"].iloc[0]
+        building = group["data center"].iloc[0]
+        start = group["wo sched. start date"].iloc[0]
+        end = group["wo sched. end date"].iloc[0]
+        assigned = group["wo assigned to"].iloc[0] if "wo assigned to" in group.columns else ""
+
+        activities = []
+        for _, row in group.iterrows():
+            emp = row["sched. employee"]
+            note = row["act note"]
+            emp_display = "⚠️ Unassigned" if pd.isna(emp) else emp
+            activities.append(f"{emp_display} – {note}")
+
+        events.append({
+            "title": str(wo_number),
+            "start": start,
+            "end": end,
+            "description": wo_desc,
+            "status": wo_status,
+            "assigned_to": assigned,
+            "building": building,
+            "activities": activities,
+            "work_order": str(wo_number),
+            "is_activity": False
+        })
+
+        for _, row in group.iterrows():
+            emp = row["sched. employee"]
+            note = row["act note"]
+            act_start = row["activity start"]
+            status = "Unassigned" if pd.isna(emp) else row["wo status"]
+            title = f"{wo_number} – {'⚠️ Unassigned' if pd.isna(emp) else emp} – {note}"
+            extra = {
+                "title": title,
+                "status": status,
+                "assigned_to": emp if pd.notna(emp) else "",
+                "building": building,
+                "description": note,
+                "work_order": str(wo_number)
+            }
+            events.append(build_event(row, is_activity=True, extra=extra))
+
     return events
 
+def parse_uploaded_file(df: pd.DataFrame) -> list:
+    df.columns = [col.strip().lower() for col in df.columns]
+    df.rename(columns=lambda x: x.strip().lower(), inplace=True)
+    file_type = detect_file_type(df)
+    if file_type == "activity":
+        return parse_activity_file(df)
+    elif file_type == "workorder":
+        return parse_workorder_file(df)
+    raise ValueError("Unrecognized file format. Expecting Work Order or Activity-level file.")
 
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
+    global parsed_events
     if request.method == "POST":
         file = request.files.get("file")
-
         if not file:
             flash("No file uploaded.", "error")
             return redirect("/calendar")
@@ -113,16 +152,9 @@ def upload_file():
 
         try:
             df = pd.read_excel(file)
-            df.columns = [col.strip().lower() for col in df.columns]
-            df.rename(columns=lambda x: x.strip().lower(), inplace=True)
-
-            app.logger.info("UPLOAD DEBUG: Columns after normalization: %s", df.columns.tolist())
-            app.logger.info("UPLOAD DEBUG: First few rows:\n%s", df.head(3).to_string())
-
-            session["events"] = parse_uploaded_file(df)
+            parsed_events = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
         except Exception as e:
-            app.logger.exception("Error during file processing: %s", str(e))
             flash(f"Failed to process file: {str(e)}", "error")
 
         return redirect("/calendar")
@@ -131,16 +163,15 @@ def upload_file():
 
 @app.route("/calendar")
 def calendar_page():
-    if "events" in session:
+    if parsed_events:
         return render_template("calendar.html")
-    else:
-        return redirect("/")
+    flash("Please upload a file first.", "warning")
+    return redirect("/")
 
 @app.route("/api/events")
 def get_events():
-    return jsonify(session.get("events", []))
+    return jsonify(parsed_events)
 
 if __name__ == "__main__":
-    import os
-    port = int(os.environ.get("PORT", 10000))
+    port = int(os.environ.get("PORT", 5000))
     app.run(host="0.0.0.0", port=port, debug=True)
