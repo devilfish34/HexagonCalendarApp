@@ -147,7 +147,7 @@ def upload_file():
             return render_template("calendar.html")
 
         try:
-            df = pd.read_excel(file)
+            df = pd.read_excel(file, engine="openpyxl")
             df.columns = [col.strip().lower() for col in df.columns]
             df.rename(columns=lambda x: x.strip().lower(), inplace=True)
 
