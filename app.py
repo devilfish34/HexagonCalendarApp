@@ -11,20 +11,30 @@ MAX_FILE_SIZE_MB = 5
 
 # Shared logic to convert a row to event dict
 def build_event(row, is_activity=False, extra=None):
-    event = {
-        "title": str(row.get("Work Order")) if not is_activity else extra.get("title"),
-        "start": row.get("Sched. Start Date") if not is_activity else row.get("Activity Start"),
-        "end": row.get("Sched. End Date") if not is_activity else row.get("Activity Start"),
-        "work_order": str(row.get("Work Order")) if not is_activity else extra.get("work_order"),
-        "building": row.get("Data Center", extra.get("building", "")),
-        "status": row.get("Status", extra.get("status", "")),
-        "description": row.get("Description", extra.get("description", "")),
-        "assigned_to": row.get("Assigned To Name", extra.get("assigned_to", "")),
-        "is_activity": is_activity
-    }
-    if extra and "activities" in extra:
-        event["activities"] = extra["activities"]
-    return event
+    if is_activity:
+        return {
+            "title": extra.get("title", ""),
+            "start": row.get("Activity Start"),
+            "end": row.get("Activity Start"),
+            "work_order": extra.get("work_order", ""),
+            "building": extra.get("building", ""),
+            "status": extra.get("status", ""),
+            "description": extra.get("description", ""),
+            "assigned_to": extra.get("assigned_to", ""),
+            "is_activity": True
+        }
+    else:
+        return {
+            "title": str(row.get("Work Order")),
+            "start": row.get("Sched. Start Date"),
+            "end": row.get("Sched. End Date"),
+            "work_order": str(row.get("Work Order")),
+            "building": row.get("Data Center", ""),
+            "status": row.get("Status", ""),
+            "description": row.get("Description", ""),
+            "assigned_to": row.get("Assigned To Name", ""),
+            "is_activity": False
+        }
 
 def detect_file_type(df: pd.DataFrame) -> str:
     if "Act Note" in df.columns and "Sched. Employee" in df.columns:
