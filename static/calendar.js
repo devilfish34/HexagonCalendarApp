@@ -6,13 +6,20 @@ function setAllCheckboxes(groupName, check) {
 }
 
 function exportToPDF() {
-    html2pdf().from(document.getElementById('calendar')).save('calendar.pdf');
+    const exportArea = document.createElement('div');
+    const summaryClone = document.getElementById('workOrderSummary').cloneNode(true);
+    const calendarClone = document.getElementById('calendar').cloneNode(true);
+
+    exportArea.appendChild(summaryClone);
+    exportArea.appendChild(calendarClone);
+
+    html2pdf().from(exportArea).save('calendar.pdf');
 }
 
 function exportToExcel() {
-    const events = calendar.getEvents();
+    const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
     const headers = ['Title', 'Start', 'End', 'Status', 'Assigned To', 'Building'];
-    const rows = events.map(ev => [
+    const rows = visibleEvents.map(ev => [
         ev.title,
         ev.start?.toISOString(),
         ev.end?.toISOString() || '',
@@ -32,8 +39,12 @@ function exportToExcel() {
 }
 
 function exportToHTML() {
+    const summaryHTML = document.getElementById('workOrderSummary').outerHTML;
     const calendarHTML = document.getElementById('calendar').outerHTML;
-    const blob = new Blob([calendarHTML], { type: "text/html" });
+    const combinedHTML = `
+        <html><head><title>Work Order Calendar</title></head><body>${summaryHTML}<br>${calendarHTML}</body></html>
+    `;
+    const blob = new Blob([combinedHTML], { type: "text/html" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
     link.download = "calendar.html";
