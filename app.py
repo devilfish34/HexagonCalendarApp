@@ -55,44 +55,11 @@ def parse_workorder_file(df: pd.DataFrame) -> list:
         raise ValueError(f"Missing required columns: {missing}")
     return [build_event(row) for _, row in df.iterrows()]
 
-def parse_uploaded_file(df: pd.DataFrame) -> list:
-    df.columns = [col.strip().lower() for col in df.columns]
-    df.rename(columns=lambda x: x.strip().lower(), inplace=True)
-    file_type = detect_file_type(df)
-
-    app.logger.info("Normalized columns: %s", df.columns.tolist())
-    app.logger.info("File type detected: %s", file_type)
-
-    if file_type == "activity":
-        return parse_activity_file(df)
-    elif file_type == "workorder":
-        return parse_workorder_file(df)
-    raise ValueError("Unrecognized file format. Expecting Work Order or Activity-level file.")
-
-def parse_activity_file(df: pd.DataFrame) -> list:
-    app.logger.info("Parsing activity file. First 3 rows:\n%s", df.head(3).to_string())
-
-    required = [
-        "wo number", "wo description", "wo status", "data center",
-        "wo sched. start date", "wo sched. end date", "act note",
-        "sched. employee", "activity start"
-    ]
-    missing = [col for col in required if col not in df.columns]
-    if missing:
-        raise ValueError(f"Missing required columns: {missing}")
-
-    df = df.dropna(subset=["activity start"])
-    events = []
-    grouped = df.groupby(df["wo number"])
-    for wo_number, group in grouped:
-        # ... [unchanged parsing logic here] ...
-        pass  # keep the rest of your original logic
-    return events
-
-
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     if request.method == "POST":
+        app.logger.info("✅ POST / hit: file upload attempted")
+
         file = request.files.get("file")
 
         if not file:
@@ -116,21 +83,56 @@ def upload_file():
             df.columns = [col.strip().lower() for col in df.columns]
             df.rename(columns=lambda x: x.strip().lower(), inplace=True)
 
-            app.logger.info("UPLOAD DEBUG: Columns after normalization: %s", df.columns.tolist())
-            app.logger.info("UPLOAD DEBUG: First few rows:\n%s", df.head(3).to_string())
+            app.logger.info("✅ pd.read_excel worked, df.shape = %s", df.shape)
+            app.logger.info("Calling parse_uploaded_file...")
 
             session["events"] = parse_uploaded_file(df)
+
             flash("File uploaded and parsed successfully.", "success")
         except Exception as e:
-            app.logger.exception("Error during file processing: %s", str(e))
+            app.logger.exception("❌ Error during file processing: %s", str(e))
             flash(f"Failed to process file: {str(e)}", "error")
 
         return redirect("/calendar")
 
-    if "events" in session:
-        return redirect("/calendar")
-    else:
-        return render_template("index.html")
+    return redirect("/calendar") if "events" in session else render_template("index.html")
+
+
+def parse_uploaded_file(df: pd.DataFrame) -> list:
+    app.logger.info("✅ Inside parse_uploaded_file()")
+
+    df.columns = [col.strip().lower() for col in df.columns]
+    df.rename(columns=lambda x: x.strip().lower(), inplace=True)
+    file_type = detect_file_type(df)
+
+    app.logger.info("Normalized columns: %s", df.columns.tolist())
+    app.logger.info("File type detected: %s", file_type)
+
+    if file_type == "activity":
+        return parse_activity_file(df)
+    elif file_type == "workorder":
+        return parse_workorder_file(df)
+    raise ValueError("Unrecognized file format. Expecting Work Order or Activity-level file.")
+
+
+def parse_activity_file(df: pd.DataFrame) -> list:
+    app.logger.info("✅ Inside parse_activity_file(), df has %d rows", len(df))
+
+    required = [
+        "wo number", "wo description", "wo status", "data center",
+        "wo sched. start date", "wo sched. end date", "act note",
+        "sched. employee", "activity start"
+    ]
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df = df.dropna(subset=["activity start"])
+    events = []
+    grouped = df.groupby(df["wo number"])
+
+    # your existing group parsing logic follows...
+    return events
 
 @app.route("/calendar")
 def calendar_page():
