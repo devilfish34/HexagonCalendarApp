@@ -148,6 +148,9 @@ def upload_file():
 
         try:
             df = pd.read_excel(file)
+            print("Uploaded columns:", df.columns.tolist())
+            print("First few rows:")
+            print(df.head().to_string())
             session["events"] = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
         except Exception as e:
