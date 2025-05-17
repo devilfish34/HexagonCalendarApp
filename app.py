@@ -9,7 +9,23 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 MAX_FILE_SIZE_MB = 5
 
-# Updated parser logic inside this file for clarity (replaces import)
+# Shared logic to convert a row to event dict
+def build_event(row, is_activity=False, extra=None):
+    event = {
+        "title": str(row.get("Work Order")) if not is_activity else extra.get("title"),
+        "start": row.get("Sched. Start Date") if not is_activity else row.get("Activity Start"),
+        "end": row.get("Sched. End Date") if not is_activity else row.get("Activity Start"),
+        "work_order": str(row.get("Work Order")) if not is_activity else extra.get("work_order"),
+        "building": row.get("Data Center", extra.get("building", "")),
+        "status": row.get("Status", extra.get("status", "")),
+        "description": row.get("Description", extra.get("description", "")),
+        "assigned_to": row.get("Assigned To Name", extra.get("assigned_to", "")),
+        "is_activity": is_activity
+    }
+    if extra and "activities" in extra:
+        event["activities"] = extra["activities"]
+    return event
+
 def detect_file_type(df: pd.DataFrame) -> str:
     if "Act Note" in df.columns and "Sched. Employee" in df.columns:
         return "activity"
@@ -22,21 +38,7 @@ def parse_workorder_file(df: pd.DataFrame) -> list:
     for col in required:
         if col not in df.columns:
             raise ValueError(f"Missing required columns: {required}")
-
-    events = []
-    for _, row in df.iterrows():
-        events.append({
-            "title": str(row["Work Order"]),
-            "start": row["Sched. Start Date"],
-            "end": row["Sched. End Date"],
-            "work_order": str(row["Work Order"]),
-            "building": row.get("Data Center", ""),
-            "status": row.get("Status", ""),
-            "description": row.get("Description", ""),
-            "assigned_to": row.get("Assigned To Name", ""),
-            "is_activity": False
-        })
-    return events
+    return [build_event(row) for _, row in df.iterrows()]
 
 def parse_activity_file(df: pd.DataFrame) -> list:
     events = []
@@ -74,17 +76,16 @@ def parse_activity_file(df: pd.DataFrame) -> list:
             note = row["Act Note"]
             act_start = row["Activity Start"]
             status = "Unassigned" if pd.isna(emp) else row["WO Status"]
-            events.append({
-                "title": f"{wo_number} – {'⚠️ Unassigned' if pd.isna(emp) else emp} – {note}",
-                "start": act_start,
-                "end": act_start,
-                "description": note,
+            title = f"{wo_number} – {'⚠️ Unassigned' if pd.isna(emp) else emp} – {note}"
+            extra = {
+                "title": title,
                 "status": status,
                 "assigned_to": emp if pd.notna(emp) else "",
                 "building": building,
-                "work_order": str(wo_number),
-                "is_activity": True
-            })
+                "description": note,
+                "work_order": str(wo_number)
+            }
+            events.append(build_event(row, is_activity=True, extra=extra))
     return events
 
 def parse_uploaded_file(df: pd.DataFrame) -> list:
@@ -105,7 +106,7 @@ def upload_file():
             return render_template("calendar.html")
 
         if not file.filename.endswith(".xlsx"):
-            flash("Only .xlsx files are supported.", "error")
+            flash("Only Excel (.xlsx) files are supported.", "error")
             return render_template("calendar.html")
 
         file.seek(0, io.SEEK_END)
@@ -125,7 +126,6 @@ def upload_file():
 
         return render_template("calendar.html")
 
-    # GET request
     if 'events' in session:
         return render_template("calendar.html")
     else:
