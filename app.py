@@ -66,7 +66,6 @@ def parse_activity_file(df: pd.DataFrame) -> list:
         raise ValueError(f"Missing required columns: {missing}")
 
     df = df.dropna(subset=["activity start"])
-
     events = []
     grouped = df.groupby(df["wo number"])
     for wo_number, group in grouped:
@@ -132,11 +131,11 @@ def upload_file():
 
         if not file:
             flash("No file uploaded.", "error")
-            return render_template("calendar.html")
+            return redirect("/calendar")
 
         if not file.filename.endswith(".xlsx"):
             flash("Only Excel (.xlsx) files are supported.", "error")
-            return render_template("calendar.html")
+            return redirect("/calendar")
 
         file.seek(0, io.SEEK_END)
         file_size = file.tell()
@@ -144,28 +143,30 @@ def upload_file():
 
         if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
             flash(f"File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
-            return render_template("calendar.html")
+            return redirect("/calendar")
 
         try:
-            df = pd.read_excel(file, engine="openpyxl")
+            df = pd.read_excel(file)
             df.columns = [col.strip().lower() for col in df.columns]
             df.rename(columns=lambda x: x.strip().lower(), inplace=True)
-
-            app.logger.info("Uploaded columns: %s", df.columns.tolist())
-            app.logger.info("First 5 rows:\n%s", df.head().to_string())
-
             session["events"] = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
-
         except Exception as e:
             flash(f"Failed to process file: {str(e)}", "error")
 
-        return render_template("calendar.html")
+        return redirect("/calendar")
 
+    if "events" in session:
+        return redirect("/calendar")
+    else:
+        return render_template("index.html")
+
+@app.route("/calendar")
+def calendar_page():
     if "events" in session:
         return render_template("calendar.html")
     else:
-        return render_template("index.html")
+        return redirect("/")
 
 @app.route("/api/events")
 def get_events():
