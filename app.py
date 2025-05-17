@@ -19,8 +19,8 @@ def build_event(row, is_activity=False, extra=None):
     if is_activity:
         return {
             "title": extra.get("title", ""),
-            "start": format_date(row.get("Activity Start")),
-            "end": format_date(row.get("Activity Start")),
+            "start": format_date(row.get("activity start")),
+            "end": format_date(row.get("activity start")),
             "work_order": extra.get("work_order", ""),
             "building": extra.get("building", ""),
             "status": extra.get("status", ""),
@@ -30,14 +30,14 @@ def build_event(row, is_activity=False, extra=None):
         }
     else:
         return {
-            "title": str(row.get("Work Order")),
-            "start": format_date(row.get("Sched. Start Date")),
-            "end": format_date(row.get("Sched. End Date")),
-            "work_order": str(row.get("Work Order")),
-            "building": row.get("Data Center", ""),
-            "status": row.get("Status", ""),
-            "description": row.get("Description", ""),
-            "assigned_to": row.get("Assigned To Name", ""),
+            "title": str(row.get("work order")),
+            "start": format_date(row.get("sched. start date")),
+            "end": format_date(row.get("sched. end date")),
+            "work_order": str(row.get("work order")),
+            "building": row.get("data center", ""),
+            "status": row.get("status", ""),
+            "description": row.get("description", ""),
+            "assigned_to": row.get("assigned to name", ""),
             "is_activity": False
         }
 
@@ -66,7 +66,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
 
-    df = df.dropna(subset=["Activity Start"])  # Ensure all activities have a date
+    df = df.dropna(subset=["activity start"])  # Ensure all activities have a date
 
     events = []
     grouped = df.groupby("wo number")
@@ -76,7 +76,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
         building = group["data center"].iloc[0]
         start = group["wo sched. start date"].iloc[0]
         end = group["wo sched. end date"].iloc[0]
-        assigned = group["wo assigned to"].iloc[0] if "WO Assigned To" in group.columns else ""
+        assigned = group["wo assigned to"].iloc[0] if "wo assigned to" in group.columns else ""
 
         activities = []
         for _, row in group.iterrows():
@@ -99,8 +99,8 @@ def parse_activity_file(df: pd.DataFrame) -> list:
         })
 
         for _, row in group.iterrows():
-            emp = row["Sched. Employee"]
-            note = row["Act Note"]
+            emp = row["sched. employee"]
+            note = row["act note"]
             act_start = row["activity start"]
             status = "Unassigned" if pd.isna(emp) else row["wo status"]
             title = f"{wo_number} – {'⚠️ Unassigned' if pd.isna(emp) else emp} – {note}"
