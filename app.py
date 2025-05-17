@@ -1,4 +1,3 @@
-
 from flask import Flask, render_template, request, redirect, flash, jsonify, session
 from flask_session import Session
 import pandas as pd

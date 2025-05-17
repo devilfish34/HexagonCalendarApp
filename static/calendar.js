@@ -12,8 +12,24 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function getChecked(name) {
-        const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
-        return Array.from(checkboxes).map(cb => cb.value);
+        return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
+    }
+
+    function attachFilterListeners() {
+        ['technician', 'status', 'building'].forEach(type => {
+            const selectAll = document.getElementById(`select-all-${type}`);
+            const deselectAll = document.getElementById(`deselect-all-${type}`);
+            if (selectAll && deselectAll) {
+                selectAll.addEventListener("click", () => {
+                    document.querySelectorAll(`input[name="${type}"]`).forEach(cb => cb.checked = true);
+                    updateCalendar();
+                });
+                deselectAll.addEventListener("click", () => {
+                    document.querySelectorAll(`input[name="${type}"]`).forEach(cb => cb.checked = false);
+                    updateCalendar();
+                });
+            }
+        });
     }
 
     function applyDefaultFilters(events) {
@@ -44,6 +60,8 @@ document.addEventListener('DOMContentLoaded', async function () {
                 container.appendChild(document.createElement("br"));
             });
         });
+
+        attachFilterListeners();
     }
 
     function renderSummary(events) {
@@ -70,7 +88,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     function updateCalendar() {
-        const searchText = document.getElementById('search-input')?.value?.toLowerCase() || "";
+        const searchText = (document.getElementById('search-input')?.value || "").toLowerCase();
         const techs = getChecked('technician');
         const statuses = getChecked('status');
         const buildings = getChecked('building');
@@ -79,16 +97,16 @@ document.addEventListener('DOMContentLoaded', async function () {
             const tech = e.assigned_to || "";
             const status = e.status || "";
             const building = e.building || "Other";
+            const matchesSearch =
+                (e.title || "").toLowerCase().includes(searchText) ||
+                (e.description || "").toLowerCase().includes(searchText) ||
+                tech.toLowerCase().includes(searchText);
 
             return (
                 techs.includes(tech) &&
                 statuses.includes(status) &&
                 buildings.includes(building) &&
-                (
-                    (e.title || "").toLowerCase().includes(searchText) ||
-                    (e.description || "").toLowerCase().includes(searchText) ||
-                    tech.toLowerCase().includes(searchText)
-                )
+                matchesSearch
             );
         });
 
@@ -100,6 +118,8 @@ document.addEventListener('DOMContentLoaded', async function () {
     const events = await fetchEvents();
     allEvents = events;
     applyDefaultFilters(events);
+
+    document.getElementById("search-input")?.addEventListener("input", updateCalendar);
 
     const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
@@ -121,36 +141,31 @@ document.addEventListener('DOMContentLoaded', async function () {
                 return;
             }
 
-            const title = info.event.title || "(No Title)";
             const status = (props.status || "").toLowerCase();
-            const assignee = props.assigned_to || "";
-            const building = props.building || "";
-            const desc = props.description || "";
-            const wo = props.work_order || "";
+            const bg = (
+                status.includes("ready") ? "#28a745" :
+                status.includes("planning") ? "#ffc107" :
+                status.includes("approved") ? "#007bff" :
+                status.includes("in process") ? "#e67ab1" :
+                "#e0e0e0"
+            );
 
+            info.el.style.backgroundColor = bg;
+            info.el.style.color = "black";
+
+            const dot = info.el.querySelector(".fc-event-dot");
+            if (dot) dot.style.display = "none";
+
+            const title = info.event.title || "(No Title)";
             const tooltip = props.is_activity
                 ? `<strong>${title}</strong><br><em>Status:</em> ${props.status}`
-                : `<strong>${title}</strong><br><em>Assigned:</em> ${assignee}<br><em>Building:</em> ${building}<br><em>Description:</em> ${desc}<br><em>Status:</em> ${props.status}<br><em>WO:</em> ${wo}`;
+                : `<strong>${title}</strong><br><em>Assigned:</em> ${props.assigned_to}<br><em>Building:</em> ${props.building}<br><em>Description:</em> ${props.description}<br><em>Status:</em> ${props.status}<br><em>WO:</em> ${props.work_order}`;
 
             tippy(info.el, {
                 content: tooltip,
                 allowHTML: true,
                 theme: 'light'
             });
-
-            if (props.is_activity) {
-                info.el.style.backgroundColor = '#9999ff';
-            } else if (status.includes("ready")) {
-                info.el.style.backgroundColor = '#28a745';
-            } else if (status.includes("planning")) {
-                info.el.style.backgroundColor = '#ffc107';
-            } else if (status.includes("approved")) {
-                info.el.style.backgroundColor = '#007bff';
-            } else if (status.includes("in process")) {
-                info.el.style.backgroundColor = '#e67ab1';
-            } else {
-                info.el.style.backgroundColor = '#e0e0e0';
-            }
 
             if (info.event.url) {
                 info.el.style.cursor = "pointer";
