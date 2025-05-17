@@ -15,31 +15,27 @@ def upload_file():
     if request.method == "POST":
         file = request.files.get("file")
 
-        if not file:
-            flash("No file uploaded.", "error")
-            return redirect(request.url)
-
-        if not file.filename.endswith(".xlsx"):
-            flash("Only .xlsx files are supported.", "error")
+        if not file or not file.filename.endswith(".xlsx"):
+            flash("Only Excel (.xlsx) files are supported.", "error")
             return redirect(request.url)
 
         file.seek(0, io.SEEK_END)
-        file_size = file.tell()
-        file.seek(0)
-
-        if file_size > MAX_FILE_SIZE_MB * 1024 * 1024:
+        if file.tell() > MAX_FILE_SIZE_MB * 1024 * 1024:
             flash(f"File is too large. Limit is {MAX_FILE_SIZE_MB}MB.", "error")
             return redirect(request.url)
+        file.seek(0)
 
         try:
             df = pd.read_excel(file)
-            session['events'] = parse_uploaded_file(df)
-            flash("File successfully uploaded.", "success")
+            session["events"] = parse_uploaded_file(df)
+            flash("File uploaded and parsed successfully.", "success")
+            return render_template("calendar.html")
         except Exception as e:
             flash(f"Failed to process file: {str(e)}", "error")
-            return redirect(request.url)
+            return render_template("calendar.html")
 
-    return render_template("calendar.html")
+    return render_template("index.html")
+
 
 @app.route("/api/events")
 def get_events():
