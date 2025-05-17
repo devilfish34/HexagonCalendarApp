@@ -42,9 +42,14 @@ def build_event(row, is_activity=False, extra=None):
         }
 
 def detect_file_type(df: pd.DataFrame) -> str:
-    if "Act Note" in df.columns and "Sched. Employee" in df.columns:
+    columns = set(col.lower().strip() for col in df.columns)
+
+    activity_indicators = {"act note", "sched. employee", "wo sched. start date", "activity start", "wo number"}
+    workorder_indicators = {"work order", "sched. start date", "sched. end date"}
+
+    if activity_indicators.issubset(columns):
         return "activity"
-    elif "Sched. Start Date" in df.columns and "Work Order" in df.columns:
+    elif workorder_indicators.issubset(columns):
         return "workorder"
     return "unknown"
 
