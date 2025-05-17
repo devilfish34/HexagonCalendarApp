@@ -54,14 +54,14 @@ def detect_file_type(df: pd.DataFrame) -> str:
     return "unknown"
 
 def parse_workorder_file(df: pd.DataFrame) -> list:
-    required = ["Work Order", "Sched. Start Date", "Sched. End Date", "Data Center"]
+    required = ["work order", "sched. start date", "sched. end date", "data center"]
     missing = [col for col in required if col not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
     return [build_event(row) for _, row in df.iterrows()]
 
 def parse_activity_file(df: pd.DataFrame) -> list:
-    required = ["WO Number", "WO Description", "WO Status", "Data Center", "WO Sched. Start Date", "WO Sched. End Date", "Act Note", "Sched. Employee", "Activity Start"]
+    required = ["wo number", "wo description", "wo status", "data center", "wo sched. start date", "wo sched. end date", "act note", "sched. employee", "activity start"]
     missing = [col for col in required if col not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
@@ -69,19 +69,19 @@ def parse_activity_file(df: pd.DataFrame) -> list:
     df = df.dropna(subset=["Activity Start"])  # Ensure all activities have a date
 
     events = []
-    grouped = df.groupby("WO Number")
+    grouped = df.groupby("wo number")
     for wo_number, group in grouped:
-        wo_desc = group["WO Description"].iloc[0]
-        wo_status = group["WO Status"].iloc[0]
-        building = group["Data Center"].iloc[0]
-        start = group["WO Sched. Start Date"].iloc[0]
-        end = group["WO Sched. End Date"].iloc[0]
-        assigned = group["WO Assigned To"].iloc[0] if "WO Assigned To" in group.columns else ""
+        wo_desc = group["wo description"].iloc[0]
+        wo_status = group["wo status"].iloc[0]
+        building = group["data center"].iloc[0]
+        start = group["wo sched. start date"].iloc[0]
+        end = group["wo sched. end date"].iloc[0]
+        assigned = group["wo assigned to"].iloc[0] if "WO Assigned To" in group.columns else ""
 
         activities = []
         for _, row in group.iterrows():
-            emp = row["Sched. Employee"]
-            note = row["Act Note"]
+            emp = row["sched. employee"]
+            note = row["act note"]
             emp_display = "⚠️ Unassigned" if pd.isna(emp) else emp
             activities.append(f"{emp_display} – {note}")
 
@@ -101,8 +101,8 @@ def parse_activity_file(df: pd.DataFrame) -> list:
         for _, row in group.iterrows():
             emp = row["Sched. Employee"]
             note = row["Act Note"]
-            act_start = row["Activity Start"]
-            status = "Unassigned" if pd.isna(emp) else row["WO Status"]
+            act_start = row["activity start"]
+            status = "Unassigned" if pd.isna(emp) else row["wo status"]
             title = f"{wo_number} – {'⚠️ Unassigned' if pd.isna(emp) else emp} – {note}"
             extra = {
                 "title": title,
@@ -117,7 +117,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
     return events
 
 def parse_uploaded_file(df: pd.DataFrame) -> list:
-    df.columns = [col.strip() for col in df.columns]
+    df.columns = [col.strip().lower() for col in df.columns]
     file_type = detect_file_type(df)
     if file_type == "activity":
         return parse_activity_file(df)
