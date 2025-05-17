@@ -144,4 +144,5 @@ def get_events():
     return jsonify(session.get("events", []))
 
 if __name__ == "__main__":
+    print("✅ app.py loaded at deploy time")
     app.run(debug=True)
