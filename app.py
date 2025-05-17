@@ -11,11 +11,16 @@ MAX_FILE_SIZE_MB = 5
 
 # Shared logic to convert a row to event dict
 def build_event(row, is_activity=False, extra=None):
+    def format_date(value):
+        if pd.isna(value):
+            return None
+        return value.isoformat() if hasattr(value, 'isoformat') else str(value)
+
     if is_activity:
         return {
             "title": extra.get("title", ""),
-            "start": row.get("Activity Start"),
-            "end": row.get("Activity Start"),
+            "start": format_date(row.get("Activity Start")),
+            "end": format_date(row.get("Activity Start")),
             "work_order": extra.get("work_order", ""),
             "building": extra.get("building", ""),
             "status": extra.get("status", ""),
@@ -26,8 +31,8 @@ def build_event(row, is_activity=False, extra=None):
     else:
         return {
             "title": str(row.get("Work Order")),
-            "start": row.get("Sched. Start Date"),
-            "end": row.get("Sched. End Date"),
+            "start": format_date(row.get("Sched. Start Date")),
+            "end": format_date(row.get("Sched. End Date")),
             "work_order": str(row.get("Work Order")),
             "building": row.get("Data Center", ""),
             "status": row.get("Status", ""),
