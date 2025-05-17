@@ -50,9 +50,9 @@ def detect_file_type(df: pd.DataFrame) -> str:
 
 def parse_workorder_file(df: pd.DataFrame) -> list:
     required = ["Work Order", "Sched. Start Date", "Sched. End Date", "Data Center"]
-    for col in required:
-        if col not in df.columns:
-            raise ValueError(f"Missing required columns: {required}")
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
     return [build_event(row) for _, row in df.iterrows()]
 
 def parse_activity_file(df: pd.DataFrame) -> list:
@@ -112,6 +112,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
     return events
 
 def parse_uploaded_file(df: pd.DataFrame) -> list:
+    df.columns = [col.strip() for col in df.columns]
     file_type = detect_file_type(df)
     if file_type == "activity":
         return parse_activity_file(df)
