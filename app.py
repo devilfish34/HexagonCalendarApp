@@ -51,6 +51,13 @@ def parse_workorder_file(df: pd.DataFrame) -> list:
     return [build_event(row) for _, row in df.iterrows()]
 
 def parse_activity_file(df: pd.DataFrame) -> list:
+    required = ["WO Number", "WO Description", "WO Status", "Data Center", "WO Sched. Start Date", "WO Sched. End Date", "Act Note", "Sched. Employee", "Activity Start"]
+    missing = [col for col in required if col not in df.columns]
+    if missing:
+        raise ValueError(f"Missing required columns: {missing}")
+
+    df = df.dropna(subset=["Activity Start"])  # Ensure all activities have a date
+
     events = []
     grouped = df.groupby("WO Number")
     for wo_number, group in grouped:
@@ -59,7 +66,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
         building = group["Data Center"].iloc[0]
         start = group["WO Sched. Start Date"].iloc[0]
         end = group["WO Sched. End Date"].iloc[0]
-        assigned = group["WO Assigned To"].iloc[0]
+        assigned = group["WO Assigned To"].iloc[0] if "WO Assigned To" in group.columns else ""
 
         activities = []
         for _, row in group.iterrows():
@@ -96,6 +103,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
                 "work_order": str(wo_number)
             }
             events.append(build_event(row, is_activity=True, extra=extra))
+
     return events
 
 def parse_uploaded_file(df: pd.DataFrame) -> list:
