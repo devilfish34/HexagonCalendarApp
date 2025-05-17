@@ -42,23 +42,14 @@ function exportToHTML() {
     document.body.removeChild(link);
 }
 
+let calendar;
+
 document.addEventListener('DOMContentLoaded', async function () {
     document.getElementById('search-input').addEventListener('input', updateCalendar);
     const container = document.getElementById('main-container');
-    //
-    // REMOVING SHOW/HIDE FILTERS BUTTON FOR NOW
-    // const btn = document.getElementById('toggle-sidebar');
-    // btn.addEventListener('click', () => {
-    //    container.classList.toggle('collapsed');
-    //    btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
-    //    setTimeout(() => {
-    //        calendar.updateSize();
-    //    }, 300);
-    // });
-    //
 
     const calendarEl = document.getElementById('calendar');
-    let calendar;
+    // let calendar; Moved to global scope to try and fix Excel export
     let allEvents = [];
 
     function applyQueryFilters() {
@@ -252,3 +243,16 @@ document.addEventListener('DOMContentLoaded', async function () {
     calendar.render();
     updateCalendar();
 });
+
+
+    //
+    // REMOVING SHOW/HIDE FILTERS BUTTON FOR NOW
+    // const btn = document.getElementById('toggle-sidebar');
+    // btn.addEventListener('click', () => {
+    //    container.classList.toggle('collapsed');
+    //    btn.textContent = container.classList.contains('collapsed') ? 'Show Filters' : 'Hide Filters';
+    //    setTimeout(() => {
+    //        calendar.updateSize();
+    //    }, 300);
+    // });
+    //
