@@ -1,23 +1,73 @@
 from flask import Flask, request, render_template, jsonify, redirect, session, flash
 import os
-import io
-import pandas as pd
-import uuid
 from data_parser import extract_work_orders, format_for_calendar
 from werkzeug.utils import secure_filename
 
 
-UPLOAD_FOLDER = "uploads"
 MAX_FILE_SIZE_MB = 5
 ALLOWED_EXTENSIONS = {".xlsx"}
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 app.config["SESSION_COOKIE_SECURE"] = True
 app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
+
+@app.route("/", methods=["GET", "POST"])
+def upload_file():
+    if request.method == "POST":
+        file = request.files.get("file")
+        # ...validation checks...
+        try:
+            df = extract_work_orders(file)
+            events = format_for_calendar(df)
+            session['parsed_events'] = events
+            flash("File uploaded and parsed successfully.", "success")
+            return redirect("/calendar?uploaded=true")
+        except Exception as e:
+            flash(f"Failed to process file: {e}", "error")
+            return redirect(request.url)
+
+    return render_template("index.html")
+
+@app.route("/calendar", methods=["GET", "POST"])
+def calendar_view():
+    if request.method == "POST":
+        file = request.files.get("file")
+        if not file:
+            flash("No file uploaded.", category="warning")
+            return redirect("/calendar")
+
+        filename = secure_filename(file.filename)
+        if not filename.endswith(".xlsx"):
+            flash("Invalid file format. Please upload an Excel (.xlsx) file.", category="warning")
+            return redirect("/calendar")
+
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(file_path)
+        session["uploaded_file"] = filename
+        flash("File uploaded successfully.", category="success")
+        return redirect("/calendar")
+    return render_template("calendar.html")
+
+@app.route("/api/events")
+def get_events():
+    return jsonify(session.get("parsed_events", []))
+
+
+if __name__ == "__main__":
+    port = int(os.environ.get("PORT", 5000)) # Use PORT from environment
+    app.run(host="0.0.0.0", port=port, debug=True)
+
+
+"""
+THESE ARE OLD AND NOT NEEDED. LEAVING FOR NOW JUST IN CASE.
+import uuid
+import io
+import pandas as pd
+
+UPLOAD_FOLDER = "uploads"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-"""
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     if request.method == "POST":
@@ -61,48 +111,7 @@ def upload_file():
             return redirect(request.url)
 
     return render_template("index.html")
-"""
 
-@app.route("/", methods=["GET", "POST"])
-def upload_file():
-    if request.method == "POST":
-        file = request.files.get("file")
-        # ...validation checks...
-        try:
-            df = extract_work_orders(file)
-            events = format_for_calendar(df)
-            session['parsed_events'] = events
-            flash("File uploaded and parsed successfully.", "success")
-            return redirect("/calendar?uploaded=true")
-        except Exception as e:
-            flash(f"Failed to process file: {e}", "error")
-            return redirect(request.url)
-
-    return render_template("index.html")
-
-
-@app.route("/calendar", methods=["GET", "POST"])
-def calendar_view():
-    if request.method == "POST":
-        file = request.files.get("file")
-        if not file:
-            flash("No file uploaded.", category="warning")
-            return redirect("/calendar")
-
-        filename = secure_filename(file.filename)
-        if not filename.endswith(".xlsx"):
-            flash("Invalid file format. Please upload an Excel (.xlsx) file.", category="warning")
-            return redirect("/calendar")
-
-        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(file_path)
-        session["uploaded_file"] = filename
-        flash("File uploaded successfully.", category="success")
-        return redirect("/calendar")
-    return render_template("calendar.html")
-
-
-"""
 @app.route("/api/events")
 def get_events():
     user_id = session["user_id"]
@@ -121,13 +130,3 @@ def get_events():
         print(f"Error parsing Excel file for user {user_id}: {e}")
         return jsonify([])
 """
-
-@app.route("/api/events")
-def get_events():
-    return jsonify(session.get("parsed_events", []))
-
-
-
-if __name__ == "__main__":
-    port = int(os.environ.get("PORT", 5000)) # Use PORT from environment
-    app.run(host="0.0.0.0", port=port, debug=True)
