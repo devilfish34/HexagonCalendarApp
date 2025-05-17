@@ -115,9 +115,14 @@ def upload_file():
             df = pd.read_excel(file)
             df.columns = [col.strip().lower() for col in df.columns]
             df.rename(columns=lambda x: x.strip().lower(), inplace=True)
+
+            app.logger.info("UPLOAD DEBUG: Columns after normalization: %s", df.columns.tolist())
+            app.logger.info("UPLOAD DEBUG: First few rows:\n%s", df.head(3).to_string())
+
             session["events"] = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
         except Exception as e:
+            app.logger.exception("Error during file processing: %s", str(e))
             flash(f"Failed to process file: {str(e)}", "error")
 
         return redirect("/calendar")
