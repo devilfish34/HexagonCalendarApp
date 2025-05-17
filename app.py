@@ -127,10 +127,7 @@ def upload_file():
 
         return redirect("/calendar")
 
-    if "events" in session:
-        return redirect("/calendar")
-    else:
-        return render_template("index.html")
+    return render_template("index.html")
 
 @app.route("/calendar")
 def calendar_page():

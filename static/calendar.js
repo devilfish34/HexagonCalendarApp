@@ -115,6 +115,7 @@ document.addEventListener('DOMContentLoaded', async function () {
     }
 
     const events = await fetchEvents();
+    console.log(events);
     renderFilters(events);
     applyQueryFilters();
 
