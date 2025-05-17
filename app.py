@@ -9,7 +9,6 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 
 MAX_FILE_SIZE_MB = 5
 
-# Shared logic to convert a row to event dict
 def build_event(row, is_activity=False, extra=None):
     def format_date(value):
         if pd.isna(value):
@@ -42,14 +41,10 @@ def build_event(row, is_activity=False, extra=None):
         }
 
 def detect_file_type(df: pd.DataFrame) -> str:
-    columns = set(col.lower().strip() for col in df.columns)
-
-    activity_indicators = {"act note", "sched. employee", "wo sched. start date", "activity start", "wo number"}
-    workorder_indicators = {"work order", "sched. start date", "sched. end date"}
-
-    if activity_indicators.issubset(columns):
+    columns = set(df.columns)
+    if {"act note", "sched. employee", "wo sched. start date", "activity start", "wo number"}.issubset(columns):
         return "activity"
-    elif workorder_indicators.issubset(columns):
+    elif {"work order", "sched. start date", "sched. end date"}.issubset(columns):
         return "workorder"
     return "unknown"
 
@@ -61,15 +56,19 @@ def parse_workorder_file(df: pd.DataFrame) -> list:
     return [build_event(row) for _, row in df.iterrows()]
 
 def parse_activity_file(df: pd.DataFrame) -> list:
-    required = ["wo number", "wo description", "wo status", "data center", "wo sched. start date", "wo sched. end date", "act note", "sched. employee", "activity start"]
+    required = [
+        "wo number", "wo description", "wo status", "data center",
+        "wo sched. start date", "wo sched. end date", "act note",
+        "sched. employee", "activity start"
+    ]
     missing = [col for col in required if col not in df.columns]
     if missing:
         raise ValueError(f"Missing required columns: {missing}")
 
-    df = df.dropna(subset=["activity start"])  # Ensure all activities have a date
+    df = df.dropna(subset=["activity start"])
 
     events = []
-    grouped = df.groupby("wo number")
+    grouped = df.groupby(df["wo number"])
     for wo_number, group in grouped:
         wo_desc = group["wo description"].iloc[0]
         wo_status = group["wo status"].iloc[0]
@@ -118,6 +117,7 @@ def parse_activity_file(df: pd.DataFrame) -> list:
 
 def parse_uploaded_file(df: pd.DataFrame) -> list:
     df.columns = [col.strip().lower() for col in df.columns]
+    df.rename(columns=lambda x: x.strip().lower(), inplace=True)
     file_type = detect_file_type(df)
     if file_type == "activity":
         return parse_activity_file(df)
@@ -148,22 +148,21 @@ def upload_file():
 
         try:
             df = pd.read_excel(file)
-            session['events'] = parse_uploaded_file(df)
+            session["events"] = parse_uploaded_file(df)
             flash("File uploaded and parsed successfully.", "success")
         except Exception as e:
             flash(f"Failed to process file: {str(e)}", "error")
 
         return render_template("calendar.html")
 
-    if 'events' in session:
+    if "events" in session:
         return render_template("calendar.html")
     else:
         return render_template("index.html")
 
 @app.route("/api/events")
 def get_events():
-    events = session.get("events", [])
-    return jsonify(events)
+    return jsonify(session.get("events", []))
 
 if __name__ == "__main__":
     app.run(debug=True)
