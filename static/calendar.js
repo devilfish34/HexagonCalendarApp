@@ -6,15 +6,55 @@ function setAllCheckboxes(groupName, check) {
 }
 
 function exportToPDF() {
-    const exportArea = document.createElement('div');
-    const summaryClone = document.getElementById('workOrderSummary').cloneNode(true);
-    const calendarClone = document.getElementById('calendar').cloneNode(true);
+    const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
 
-    exportArea.appendChild(summaryClone);
-    exportArea.appendChild(calendarClone);
+    const summaryHTML = document.getElementById('workOrderSummary').outerHTML;
 
-    html2pdf().from(exportArea).save('calendar.pdf');
+    const rows = visibleEvents.map(ev => `
+        <tr>
+            <td>${ev.title}</td>
+            <td>${ev.start?.toLocaleString() || ''}</td>
+            <td>${ev.end?.toLocaleString() || ''}</td>
+            <td>${ev.extendedProps.status || ''}</td>
+            <td>${ev.extendedProps.assigned_to || ''}</td>
+            <td>${ev.extendedProps.building || ''}</td>
+        </tr>
+    `).join('');
+
+    const exportContent = `
+        <div style="font-family: Arial, sans-serif;">
+            ${summaryHTML}
+            <h3>Filtered Work Orders</h3>
+            <table border="1" cellpadding="8" cellspacing="0" style="border-collapse: collapse; width: 100%;">
+                <thead style="background-color: #f0f0f0;">
+                    <tr>
+                        <th>Title</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Building</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        </div>
+    `;
+
+    const container = document.createElement('div');
+    container.innerHTML = exportContent;
+
+    html2pdf().from(container).set({
+        margin: 10,
+        filename: 'calendar_agenda.pdf',
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'mm', format: 'a4', orientation: 'landscape' }
+    }).save();
 }
+
 
 function exportToExcel() {
     const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
@@ -39,19 +79,65 @@ function exportToExcel() {
 }
 
 function exportToHTML() {
+    const visibleEvents = calendar.getEvents().filter(e => e.display !== 'none');
     const summaryHTML = document.getElementById('workOrderSummary').outerHTML;
-    const calendarHTML = document.getElementById('calendar').outerHTML;
-    const combinedHTML = `
-        <html><head><title>Work Order Calendar</title></head><body>${summaryHTML}<br>${calendarHTML}</body></html>
+
+    const rows = visibleEvents.map(ev => `
+        <tr>
+            <td>${ev.title}</td>
+            <td>${ev.start?.toLocaleString() || ''}</td>
+            <td>${ev.end?.toLocaleString() || ''}</td>
+            <td>${ev.extendedProps.status || ''}</td>
+            <td>${ev.extendedProps.assigned_to || ''}</td>
+            <td>${ev.extendedProps.building || ''}</td>
+        </tr>
+    `).join('');
+
+    const html = `
+        <!DOCTYPE html>
+        <html>
+        <head>
+            <meta charset="utf-8">
+            <title>Work Order Export</title>
+            <style>
+                body { font-family: Arial, sans-serif; padding: 2em; }
+                h3 { margin-top: 2em; }
+                table { width: 100%; border-collapse: collapse; margin-top: 1em; }
+                th, td { border: 1px solid #ccc; padding: 8px; text-align: left; }
+                th { background-color: #f0f0f0; }
+            </style>
+        </head>
+        <body>
+            ${summaryHTML}
+            <h3>Filtered Work Orders</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Title</th>
+                        <th>Start</th>
+                        <th>End</th>
+                        <th>Status</th>
+                        <th>Assigned To</th>
+                        <th>Building</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    ${rows}
+                </tbody>
+            </table>
+        </body>
+        </html>
     `;
-    const blob = new Blob([combinedHTML], { type: "text/html" });
+
+    const blob = new Blob([html], { type: "text/html" });
     const link = document.createElement("a");
     link.href = URL.createObjectURL(blob);
-    link.download = "calendar.html";
+    link.download = "calendar_agenda.html";
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
 }
+
 
 let calendar;
 
