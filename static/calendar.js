@@ -212,6 +212,43 @@ document.addEventListener('DOMContentLoaded', async function () {
         }
     });
 
+    function exportToPDF() {
+        html2pdf().from(document.getElementById('calendar')).save('calendar.pdf');
+    }
+
+    function exportToExcel() {
+        const events = calendar.getEvents();
+        const headers = ['Title', 'Start', 'End', 'Status', 'Assigned To', 'Building'];
+        const rows = events.map(ev => [
+            ev.title,
+            ev.start?.toISOString(),
+            ev.end?.toISOString() || '',
+            ev.extendedProps.status || '',
+            ev.extendedProps.assigned_to || '',
+            ev.extendedProps.building || ''
+        ]);
+
+        let csvContent = "data:text/csv;charset=utf-8," + [headers.join(','), ...rows.map(e => e.join(','))].join("\n");
+        const encodedUri = encodeURI(csvContent);
+        const link = document.createElement("a");
+        link.setAttribute("href", encodedUri);
+        link.setAttribute("download", "calendar_export.csv");
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
+    function exportToHTML() {
+        const calendarHTML = document.getElementById('calendar').outerHTML;
+        const blob = new Blob([calendarHTML], { type: "text/html" });
+        const link = document.createElement("a");
+        link.href = URL.createObjectURL(blob);
+        link.download = "calendar.html";
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    }
+
     calendar.render();
     updateCalendar();
 });
