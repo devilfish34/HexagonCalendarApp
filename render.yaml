@@ -1,0 +1,12 @@
+# Exported from Render on 2025-05-17T21:06:46Z
+services:
+- type: web
+  name: HexagonToCalendarApp
+  runtime: python
+  repo: https://github.com/devilfish34/HexagonCalendarApp
+  plan: starter
+  region: virginia
+  buildCommand: pip install -r requirements.txt
+  startCommand: python app.py
+  autoDeployTrigger: commit
+version: "1"
