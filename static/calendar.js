@@ -11,6 +11,44 @@ document.addEventListener('DOMContentLoaded', async function () {
         return events;
     }
 
+    function getChecked(name) {
+        const checkboxes = document.querySelectorAll(`input[name="${name}"]:checked`);
+        if (checkboxes.length === 0) return []; // default to empty set
+        return Array.from(checkboxes).map(cb => cb.value);
+    }
+
+    function applyDefaultFilterValues(events) {
+        const getUnique = (arr) => [...new Set(arr)].filter(Boolean).sort();
+        const types = ["technician", "status", "building"];
+
+        types.forEach(type => {
+            const values = getUnique(events.map(e => {
+                if (type === "technician") return e.assigned_to || "";
+                if (type === "status") return e.status || "";
+                if (type === "building") return e.building || "Other";
+                return "";
+            }));
+
+            const container = document.getElementById(`filters-${type}`);
+            if (!container) return;
+
+            container.innerHTML = "";
+            values.forEach(val => {
+                const label = document.createElement("label");
+                const checkbox = document.createElement("input");
+                checkbox.type = "checkbox";
+                checkbox.name = type;
+                checkbox.value = val;
+                checkbox.checked = true;
+                checkbox.addEventListener("change", updateCalendar);
+                label.appendChild(checkbox);
+                label.append(" " + val);
+                container.appendChild(label);
+                container.appendChild(document.createElement("br"));
+            });
+        });
+    }
+
     function updateCalendar() {
         const searchText = document.getElementById('search-input')?.value?.toLowerCase() || "";
         const techs = getChecked('technician');
@@ -18,10 +56,14 @@ document.addEventListener('DOMContentLoaded', async function () {
         const buildings = getChecked('building');
 
         const filtered = allEvents.filter(e => {
+            const tech = e.assigned_to || "";
+            const status = e.status || "";
+            const building = e.building || "Other";
+
             return (
-                techs.includes(e.assigned_to || "") &&
-                statuses.includes(e.status || "") &&
-                buildings.includes(e.building || "Other") &&
+                (techs.length === 0 || techs.includes(tech)) &&
+                (statuses.length === 0 || statuses.includes(status)) &&
+                (buildings.length === 0 || buildings.includes(building)) &&
                 (
                     (e.title || "").toLowerCase().includes(searchText) ||
                     (e.description || "").toLowerCase().includes(searchText) ||
@@ -30,41 +72,45 @@ document.addEventListener('DOMContentLoaded', async function () {
             );
         });
 
+        console.log("Rendering", filtered.length, "events...");
         calendar.removeAllEvents();
         calendar.addEventSource(filtered);
     }
 
-    function getChecked(name) {
-        return Array.from(document.querySelectorAll(`input[name="${name}"]:checked`)).map(cb => cb.value);
-    }
-
     const events = await fetchEvents();
     allEvents = events;
+    applyDefaultFilterValues(events);
 
-    calendar = new FullCalendar.Calendar(calendarEl, {
+    const calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
+        height: 'auto',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay'
         },
-        height: 'auto',
         displayEventTime: false,
         events: events,
 
         eventDidMount: function(info) {
-            const view = calendar.view.type;
             const props = info.event.extendedProps;
+            const view = info.view.type;
 
-            // Hide activities in month view
             if (view === 'dayGridMonth' && props.is_activity) {
                 info.el.style.display = 'none';
                 return;
             }
 
+            const title = info.event.title || "(No Title)";
+            const status = props.status || "";
+            const assignee = props.assigned_to || "";
+            const building = props.building || "";
+            const desc = props.description || "";
+            const wo = props.work_order || "";
+
             const tooltip = props.is_activity
-                ? `<strong>${info.event.title}</strong><br><em>Status:</em> ${props.status}`
-                : `<strong>${info.event.title}</strong><br><em>Assigned:</em> ${props.assigned_to}<br><em>Building:</em> ${props.building}<br><em>Description:</em> ${props.description}<br><em>Status:</em> ${props.status}<br><em>WO:</em> ${props.work_order}`;
+                ? `<strong>${title}</strong><br><em>Status:</em> ${status}`
+                : `<strong>${title}</strong><br><em>Assigned:</em> ${assignee}<br><em>Building:</em> ${building}<br><em>Description:</em> ${desc}<br><em>Status:</em> ${status}<br><em>WO:</em> ${wo}`;
 
             tippy(info.el, {
                 content: tooltip,
