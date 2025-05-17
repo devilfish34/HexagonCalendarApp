@@ -1,11 +1,7 @@
-from flask import Flask, request, render_template, jsonify, redirect, session, flash
+from flask import Flask, request, session, render_template, flash, redirect, url_for, jsonify
 import os
 from data_parser import extract_work_orders, format_for_calendar
-from werkzeug.utils import secure_filename
 
-
-MAX_FILE_SIZE_MB = 5
-ALLOWED_EXTENSIONS = {".xlsx"}
 app = Flask(__name__)
 app.secret_key = os.environ.get("SECRET_KEY", "dev-secret")
 app.config["SESSION_COOKIE_SECURE"] = True
@@ -15,11 +11,15 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 def upload_file():
     if request.method == "POST":
         file = request.files.get("file")
-        # ...validation checks...
+
+        if not file or not file.filename.endswith(".xlsx"):
+            flash("Only .xlsx files are supported.", "error")
+            return redirect(request.url)
+
         try:
             df = extract_work_orders(file)
             events = format_for_calendar(df)
-            session['parsed_events'] = events
+            session["parsed_events"] = events
             flash("File uploaded and parsed successfully.", "success")
             return redirect("/calendar?uploaded=true")
         except Exception as e:
@@ -28,24 +28,8 @@ def upload_file():
 
     return render_template("index.html")
 
-@app.route("/calendar", methods=["GET", "POST"])
-def calendar_view():
-    if request.method == "POST":
-        file = request.files.get("file")
-        if not file:
-            flash("No file uploaded.", category="warning")
-            return redirect("/calendar")
-
-        filename = secure_filename(file.filename)
-        if not filename.endswith(".xlsx"):
-            flash("Invalid file format. Please upload an Excel (.xlsx) file.", category="warning")
-            return redirect("/calendar")
-
-        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
-        file.save(file_path)
-        session["uploaded_file"] = filename
-        flash("File uploaded successfully.", category="success")
-        return redirect("/calendar")
+@app.route("/calendar")
+def calendar():
     return render_template("calendar.html")
 
 @app.route("/api/events")
@@ -111,6 +95,26 @@ def upload_file():
             return redirect(request.url)
 
     return render_template("index.html")
+
+@app.route("/calendar", methods=["GET", "POST"])
+def calendar_view():
+    if request.method == "POST":
+        file = request.files.get("file")
+        if not file:
+            flash("No file uploaded.", category="warning")
+            return redirect("/calendar")
+
+        filename = secure_filename(file.filename)
+        if not filename.endswith(".xlsx"):
+            flash("Invalid file format. Please upload an Excel (.xlsx) file.", category="warning")
+            return redirect("/calendar")
+
+        file_path = os.path.join(app.config["UPLOAD_FOLDER"], filename)
+        file.save(file_path)
+        session["uploaded_file"] = filename
+        flash("File uploaded successfully.", category="success")
+        return redirect("/calendar")
+    return render_template("calendar.html")
 
 @app.route("/api/events")
 def get_events():
