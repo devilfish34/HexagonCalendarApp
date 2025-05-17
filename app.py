@@ -1,6 +1,7 @@
 from flask import Flask, request, render_template, jsonify, redirect, session, flash
 import os
 import io
+import pandas as pd
 import uuid
 from data_parser import extract_work_orders, format_for_calendar
 from werkzeug.utils import secure_filename
@@ -16,7 +17,7 @@ app.config["SESSION_COOKIE_SAMESITE"] = "Lax"
 app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
-
+"""
 @app.route("/", methods=["GET", "POST"])
 def upload_file():
     if request.method == "POST":
@@ -60,6 +61,24 @@ def upload_file():
             return redirect(request.url)
 
     return render_template("index.html")
+"""
+
+@app.route("/", methods=["GET", "POST"])
+def upload_file():
+    if request.method == "POST":
+        file = request.files.get("file")
+        # ...validation checks...
+        try:
+            df = extract_work_orders(file)
+            events = format_for_calendar(df)
+            session['parsed_events'] = events
+            flash("File uploaded and parsed successfully.", "success")
+            return redirect("/calendar?uploaded=true")
+        except Exception as e:
+            flash(f"Failed to process file: {e}", "error")
+            return redirect(request.url)
+
+    return render_template("index.html")
 
 
 @app.route("/calendar", methods=["GET", "POST"])
@@ -83,6 +102,7 @@ def calendar_view():
     return render_template("calendar.html")
 
 
+"""
 @app.route("/api/events")
 def get_events():
     user_id = session["user_id"]
@@ -100,6 +120,12 @@ def get_events():
     except Exception as e:
         print(f"Error parsing Excel file for user {user_id}: {e}")
         return jsonify([])
+"""
+
+@app.route("/api/events")
+def get_events():
+    return jsonify(session.get("parsed_events", []))
+
 
 
 if __name__ == "__main__":
