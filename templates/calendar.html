@@ -24,10 +24,9 @@
       {% endwith %}
     <div id="main-container">
       <div id="sidebar">
-        <form method="POST" enctype="multipart/form-data" class="upload-form">
+        <form action="/" method="POST" enctype="multipart/form-data" class="upload-form">
         <label>Upload a new Excel File:</label>
         <input type="file" name="file" id="file" accept=".xlsx" required onchange="validateFile(this)">
-
         <script>
             function validateFile(input) {
                 const file = input.files[0];
@@ -40,6 +39,11 @@
                     alert("Only Excel (.xlsx) files under 5MB are allowed.");
                     input.value = ''; // Clear the file input
                 }
+            }
+        </script>
+        <script>
+            if (window.location.href.includes("?upload=true")) {
+                location.reload();
             }
         </script>
         <button type="submit">Upload</button>

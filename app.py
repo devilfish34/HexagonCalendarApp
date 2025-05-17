@@ -53,7 +53,7 @@ def upload_file():
             })
 
             flash("File uploaded and saved successfully.", "success")
-            return redirect("/calendar")
+            return redirect("/calendar?uploaded=true")
         except Exception as e:
             flash("There was an error processing the Excel file.", "error")
             print(e)
